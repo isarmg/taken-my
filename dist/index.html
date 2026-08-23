@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#090909" />
+    <meta name="description" content="A browser privacy story, revealed from the data your browser shares." />
+    <title>taken. — browser portrait</title>
+    <link rel="preload" href="/fonts/eb-garamond-400.woff2" as="font" type="font/woff2" crossorigin />
+    <script type="module" crossorigin src="/assets/index-C9cIz9Y4.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BsnDpTOp.css">
+  </head>
+  <body>
+    <button class="language-switch" id="languageSwitch" type="button" aria-label="切换语言">中文</button>
+
+    <noscript>
+      <main class="no-script">
+        <div class="series-label">浏览器画像 · A browser portrait</div>
+        <h1>taken.</h1>
+        <p>这个页面需要 JavaScript；故事来自浏览器主动透露的信息。</p>
+        <p lang="en">This page needs JavaScript. The story is made from what your browser reveals.</p>
+      </main>
+    </noscript>
+
+    <div class="dossier-rule" id="dossierRule" aria-hidden="true"></div>
+
+    <main class="page" id="page">
+      <header class="intro">
+        <p class="series-label" data-i18n="series">A browser portrait · Vol. I</p>
+        <h1 class="title">taken.</h1>
+        <p class="intro-line" data-i18n="intro">You opened this page. It already knows the following.</p>
+      </header>
+
+      <section class="scanning" id="scanning" aria-live="polite">
+        <p data-i18n="reading">reading</p>
+        <svg class="fingerprint" viewBox="0 0 64 64" role="img" aria-label="Reading browser information">
+          <path d="M19 44c-2-6-2-15 2-20 5-7 17-7 22 0 4 5 4 13 1 19M23 49c-4-7-5-17 0-24 4-5 13-6 18-1 5 5 5 14 1 23M28 51c-3-7-4-15 0-21 2-4 8-4 11-1 4 4 3 12 0 19M33 48c-2-5-2-10 0-14" fill="none" stroke="currentColor" stroke-linecap="round"/>
+          <line class="scan-line" x1="7" y1="4" x2="57" y2="4" stroke="currentColor" />
+        </svg>
+      </section>
+
+      <section class="observations" id="observations" aria-label="What your browser disclosed"></section>
+      <section class="closing" id="closing"></section>
+
+      <footer class="footer" id="footer">
+        <p>
+          <a href="#" data-open="sources" data-i18n="readSources">Read the sources</a>
+          <span aria-hidden="true">·</span>
+          <a href="#" data-open="share" data-i18n="tellSomeone">Tell someone</a>
+        </p>
+        <p class="footer-meta" data-i18n="edition">A browser portrait · August 2026</p>
+        <p class="credit" data-i18n-html="credit">An independent study inspired by <a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">Since You Arrived · Vol. IV</a>.</p>
+      </footer>
+    </main>
+
+    <div class="live-counter" id="liveCounter" aria-hidden="true"></div>
+    <div class="tab-notice" id="tabNotice" role="status" aria-live="polite"></div>
+
+    <dialog class="modal" id="shareModal" aria-labelledby="shareHeading">
+      <div class="modal-card share-card">
+        <p class="modal-kicker" data-i18n="shareKicker">— Tell Someone —</p>
+        <h2 id="shareHeading" data-i18n="shareHeading">A page just described my device without asking a question.</h2>
+        <p class="share-tally" id="shareTally"></p>
+        <div class="share-buttons">
+          <button type="button" data-share="x">𝕏 (Twitter)</button>
+          <button type="button" data-share="bluesky">Bluesky</button>
+          <button type="button" data-share="linkedin">LinkedIn</button>
+          <button type="button" data-share="copy" data-i18n="copyLink">Copy link</button>
+        </div>
+        <button class="close-button" type="button" data-close data-i18n="close">Close</button>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="sourcesModal" aria-labelledby="sourcesHeading">
+      <div class="modal-card sources-card">
+        <p class="modal-kicker" data-i18n="sourcesKicker">— A Note On What You Gave —</p>
+        <h2 id="sourcesHeading" data-i18n="sourcesHeading">Sources &amp; confessions</h2>
+        <p class="modal-lede" data-i18n="sourcesLede">Every observation was assembled in your browser from standard web APIs. Nothing is stored by this replica.</p>
+        <div class="source-list">
+          <article>
+            <h3 data-i18n="sourceBrowserTitle">Browser APIs</h3>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noreferrer" data-i18n="sourceBrowserCite">MDN Web Docs · Mozilla</a>
+            <p data-i18n="sourceBrowserBody">Screen, language, preferences, storage estimates and graphics data are exposed through standard JavaScript APIs.</p>
+          </article>
+          <article>
+            <h3 data-i18n="sourceFontTitle">Font fingerprinting</h3>
+            <a href="https://coveryourtracks.eff.org/" target="_blank" rel="noreferrer" data-i18n="sourceFontCite">Electronic Frontier Foundation · Cover Your Tracks</a>
+            <p data-i18n="sourceFontBody">Small differences in installed fonts can help distinguish one browser from another without a cookie.</p>
+          </article>
+          <article>
+            <h3 data-i18n="sourceWebglTitle">WebGL fingerprinting</h3>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API" target="_blank" rel="noreferrer" data-i18n="sourceWebglCite">MDN · WebGL API</a>
+            <p data-i18n="sourceWebglBody">A graphics renderer string may reveal the GPU family or may show that the browser deliberately masked it.</p>
+          </article>
+          <article>
+            <h3 data-i18n="sourceStorageTitle">What this page stores</h3>
+            <p class="source-cite" data-i18n="sourceStorageCite">Nothing</p>
+            <p data-i18n="sourceStorageBody">No cookies, localStorage, sessionStorage or analytics are used. Reloading starts the story again.</p>
+          </article>
+          <article>
+            <h3 data-i18n="sourceOriginalTitle">The original work</h3>
+            <a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">sinceyouarrived.world/taken</a>
+            <p data-i18n="sourceOriginalBody">This is a from-scratch educational recreation of its interaction language, with new structure and condensed copy.</p>
+          </article>
+        </div>
+        <button class="close-button" type="button" data-close data-i18n="close">Close</button>
+      </div>
+    </dialog>
+
+  </body>
+</html>
