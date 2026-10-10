@@ -1,611 +1,302 @@
-const startedAt = performance.now();
-const arrivedAt = new Date();
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const requestedLanguage = new URLSearchParams(location.search).get('lang');
-const language = requestedLanguage === 'zh' || requestedLanguage === 'en'
-  ? requestedLanguage
-  : (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
-const isChinese = language === 'zh';
+import { checks, detailChecks, permissionChecks, GROUPS, STATUS, metadata, collectFacts, cleanShareUrl, exportSnapshot, withTimeout } from './browser-info.js';
+import { formatValue } from './display-format.js';
 
-const staticCopy = {
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const requestedLanguage = new URLSearchParams(location.search).get('lang');
+let language = ['en', 'zh'].includes(requestedLanguage) ? requestedLanguage : ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+const copy = {
   en: {
-    title: 'taken. — browser portrait',
-    description: 'A browser privacy story, revealed from the data your browser shares.',
-    series: 'A browser portrait · Vol. I',
-    intro: 'You opened this page. It already knows the following.',
-    reading: 'reading',
-    fingerprintLabel: 'Reading browser information',
-    observationsLabel: 'What your browser disclosed',
-    readSources: 'Read the sources',
-    tellSomeone: 'Tell someone',
-    edition: 'A browser portrait · August 2026',
-    credit: 'An independent study inspired by <a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">Since You Arrived · Vol. IV</a>.',
-    shareKicker: '— Tell Someone —',
-    shareHeading: 'A page just described my device without asking a question.',
-    copyLink: 'Copy link',
-    copied: 'Copied',
-    close: 'Close',
-    sourcesKicker: '— A Note On What You Gave —',
-    sourcesHeading: 'Sources & confessions',
-    sourcesLede: 'Every observation was assembled in your browser from standard web APIs. Nothing is stored by this replica.',
-    sourceBrowserTitle: 'Browser APIs',
-    sourceBrowserCite: 'MDN Web Docs · Mozilla',
-    sourceBrowserBody: 'Screen, language, preferences, storage estimates and graphics data are exposed through standard JavaScript APIs.',
-    sourceFontTitle: 'Font fingerprinting',
-    sourceFontCite: 'Electronic Frontier Foundation · Cover Your Tracks',
-    sourceFontBody: 'Small differences in installed fonts can help distinguish one browser from another without a cookie.',
-    sourceWebglTitle: 'WebGL fingerprinting',
-    sourceWebglCite: 'MDN · WebGL API',
-    sourceWebglBody: 'A graphics renderer string may reveal the GPU family or may show that the browser deliberately masked it.',
-    sourceStorageTitle: 'What this page stores',
-    sourceStorageCite: 'Nothing',
-    sourceStorageBody: 'No cookies, localStorage, sessionStorage or analytics are used. Reloading starts the story again.',
-    sourceOriginalTitle: 'The original work',
-    sourceOriginalBody: 'This is a from-scratch educational recreation of its interaction language, with new structure and condensed copy.'
+    series: 'A browser portrait · Local edition', intro: 'See what arrives with your browser.', privacy: 'Calculated here. No accounts, cloud APIs, analytics, or uploads.',
+    skip: 'Show now', shown: 'All fields shown', refresh: 'Check again', export: 'Export local JSON', exportNote: 'Export includes device and setting details. Review the downloaded file before sharing.',
+    filter: 'Find a field', availableOnly: 'Available only', empty: 'No matching fields.', optional: 'Look a little closer',
+    optionalNote: 'Optional checks run only when you press their button. Permission states are read without asking for new access; location, camera, and microphone are never activated.',
+    details: 'Inspect graphics & font hints', permissions: 'Read permission states', clearOptional: 'Clear optional results', optionalCleared: 'Optional results cleared from this page.',
+    sessionHeading: 'This tab, this moment', sessionNote: 'Only aggregate counters in this page’s memory. No keystrokes, pointer coordinates, browsing history, or cross-site identifier.',
+    sources: 'Sources & limits', share: 'Copy page link', edition: 'Standard APIs. Nothing bypassed.', credit: 'An independent study inspired by ',
+    shareHeading: 'Share the page, not your snapshot.', shareNote: 'This link excludes the query string, fragment, and all detected values. No social network is contacted by this page.', pageLink: 'Page link', copy: 'Copy link', close: 'Close',
+    copied: 'Link copied.', copyFailed: 'Clipboard unavailable. Select and copy the link above.',
+    sourcesHeading: 'Sources & limits', sourcesNote: 'Every field names its documented browser API and links to its source. Missing values can mean unsupported APIs, privacy protections, policy restrictions, or a timeout. They are never treated as proof about you.',
+    localTitle: 'What stays local', localNote: 'Results live only in this tab’s memory. The app never writes cookies, localStorage, sessionStorage, IndexedDB, or an identifier. Export creates a file only when you ask. Reloading or clearing optional results discards them from the page; downloaded files remain on your device.',
+    networkTitle: 'What uses the network', networkNote: 'Your browser downloads this page, scripts, styles, and bundled fonts from its host. Like any website, the host can see ordinary requests and may log them; this app cannot control hosting logs. Detection sends no requests. External documentation links open only when clicked. Browser vendors may implement APIs internally; this app cannot audit the browser itself.',
+    limitsTitle: 'No hidden access', limitsNote: 'No IP lookup, geolocation retrieval, camera or microphone capture, WebRTC/STUN/TURN, port scan, network speed test, exploit, or permission bypass. API presence does not mean permission. Reported values can be approximate, masked, stale, or spoofed.',
+    permissionTitle: 'Permissions stay yours', permissionNote: 'The optional permission check only reads existing states. “Prompt” means a real access attempt would need your permission; this page never makes that attempt. Manage permissions in your browser’s site settings.',
+    reading: 'Reading independent local checks…', ready: 'Snapshot ready. Check again after changing settings or resizing.', optionalReading: 'Reading optional local checks…', optionalReady: 'Optional checks finished. Each field shows its own status.',
+    source: 'Source & explanation', checked: 'Snapshot started', exportDone: 'Local JSON download prepared. Nothing uploaded.', exportFailed: 'The download could not be prepared. Please try again.', controls: 'Browser inspector controls', facts: 'Browser facts', optionalFacts: 'Optional browser facts', snapshot: 'Snapshot status'
   },
   zh: {
-    title: 'taken. — 浏览器画像',
-    description: '一段由浏览器主动透露的信息所组成的隐私叙事。',
-    series: '浏览器画像 · 第一卷',
-    intro: '你打开了这个页面。它已经知道了这些。',
-    reading: '正在读取',
-    fingerprintLabel: '正在读取浏览器信息',
-    observationsLabel: '你的浏览器所透露的信息',
-    readSources: '阅读来源说明',
-    tellSomeone: '告诉别人',
-    edition: '浏览器画像 · 2026 年 8 月',
-    credit: '这是一项独立研究，灵感来自 <a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">Since You Arrived · 第四卷</a>。',
-    shareKicker: '— 告诉别人 —',
-    shareHeading: '一个页面没有问我任何问题，却描述出了我的设备。',
-    copyLink: '复制链接',
-    copied: '已复制',
-    close: '关闭',
-    sourcesKicker: '— 关于你所交出的信息 —',
-    sourcesHeading: '来源与坦白',
-    sourcesLede: '每一条观察都由你的浏览器通过标准 Web API 在本地生成。这个复刻版不会储存任何结果。',
-    sourceBrowserTitle: '浏览器 API',
-    sourceBrowserCite: 'MDN Web 文档 · Mozilla',
-    sourceBrowserBody: '屏幕、语言、界面偏好、存储配额和图形信息，都可以通过标准 JavaScript API 获取。',
-    sourceFontTitle: '字体指纹',
-    sourceFontCite: '电子前哨基金会 · Cover Your Tracks',
-    sourceFontBody: '设备中已安装字体的细微差异，可以在没有 Cookie 的情况下帮助区分不同浏览器。',
-    sourceWebglTitle: 'WebGL 指纹',
-    sourceWebglCite: 'MDN · WebGL API',
-    sourceWebglBody: '图形渲染器字符串可能暴露 GPU 系列，也可能显示浏览器正在刻意隐藏它。',
-    sourceStorageTitle: '这个页面储存了什么',
-    sourceStorageCite: '什么都没有',
-    sourceStorageBody: '不使用 Cookie、localStorage、sessionStorage 或分析服务。刷新页面后，故事会重新开始。',
-    sourceOriginalTitle: '原始作品',
-    sourceOriginalBody: '这是一次从零实现的教育性复刻，沿用了原作的交互语言，并采用新的代码结构与精简后的文案。'
+    series: '浏览器画像 · 本地版', intro: '看看是什么与你的浏览器一同抵达。', privacy: '在这里计算。无需账号，不接入云端 API、统计分析或上传服务。',
+    skip: '立即查看', shown: '已显示所有字段', refresh: '重新检测', export: '导出本地 JSON', exportNote: '导出包含设备和设置详情，请先检查下载的文件再分享。',
+    filter: '查找字段', availableOnly: '仅显示已获取', empty: '没有匹配的字段。', optional: '再看仔细一点',
+    optionalNote: '可选检测只在你点击对应按钮后运行。读取已有权限状态，不申请新权限；从不启用定位、摄像头或麦克风。',
+    details: '查看图形与字体提示', permissions: '读取权限状态', clearOptional: '清除可选结果', optionalCleared: '已从当前页面清除可选结果。',
+    sessionHeading: '这个标签页，这一刻', sessionNote: '仅在页面内存中保留汇总计数，不记录按键、指针坐标、浏览历史或跨站标识。',
+    sources: '来源与局限', share: '复制页面链接', edition: '标准 API，不绕过任何限制。', credit: '独立研究，灵感来自 ',
+    shareHeading: '分享页面，不分享你的检测快照。', shareNote: '链接不包含查询参数、片段或任何检测结果。本页面不连接社交网络。', pageLink: '页面链接', copy: '复制链接', close: '关闭', copied: '链接已复制。', copyFailed: '剪贴板不可用，请选中上方链接手动复制。',
+    sourcesHeading: '来源与局限', sourcesNote: '每个字段都列出所用的公开浏览器 API 和文档链接。缺失值可能源于不支持、隐私保护、策略限制或超时，不能据此判断你的情况。',
+    localTitle: '哪些信息留在本地', localNote: '结果仅存在于当前标签页内存中。应用不写入 Cookie、localStorage、sessionStorage、IndexedDB 或身份标识。仅在你点击导出时生成文件。刷新或清除可选结果会丢弃页面中的相应结果，已下载的文件仍保留在设备上。',
+    networkTitle: '哪些操作使用网络', networkNote: '浏览器需要从托管站点下载页面、脚本、样式和自带字体。与普通网站一样，托管方可看到常规请求并可能记录日志，应用无法控制托管日志。检测过程不发送请求。外部文档链接仅在点击时打开。浏览器厂商可能在内部实现 API，本应用无法审计浏览器本身。',
+    limitsTitle: '没有隐藏访问', limitsNote: '不查询 IP、不获取地理位置、不启动摄像头或麦克风，不使用 WebRTC/STUN/TURN、端口扫描、网络测速、漏洞或权限绕过。API 存在不代表有访问权限。报告值可能近似、被隐藏、过期或被伪装。',
+    permissionTitle: '权限由你掌握', permissionNote: '可选权限检查只读取已有状态。“需询问”表示真正尝试访问时需要征得同意，本页面不会进行这种尝试。你可以在浏览器的站点设置中管理权限。',
+    reading: '正在独立读取各项本地信息…', ready: '快照已就绪。更改设置或调整窗口后可重新检测。', optionalReading: '正在读取可选本地信息…', optionalReady: '可选检测已完成，每个字段都有独立状态。',
+    source: '来源与说明', checked: '快照开始时间', exportDone: '本地 JSON 下载已准备好，没有上传任何信息。', exportFailed: '无法准备下载，请重试。', controls: '浏览器检测操作', facts: '浏览器信息', optionalFacts: '可选浏览器信息', snapshot: '快照状态'
   }
 };
+
+const state = { generation: 0, optionalGeneration: 0, records: new Map(), optional: new Map(), capturedAt: '', collecting: false, optionalBusy: 0, revealed: false, scanMessage: 'reading', optionalMessage: '', clicks: 0, moves: 0, tabSwitches: 0, scrollMax: 0 };
+const rows = new Map();
+const startedAt = performance.now();
+let copyGeneration = 0;
+const t = key => copy[language][key];
+function node(tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}
 
 function applyLanguage() {
-  const copy = staticCopy[language];
-  document.documentElement.lang = isChinese ? 'zh-CN' : 'en';
-  document.title = copy.title;
-  document.querySelector('meta[name="description"]')?.setAttribute('content', copy.description);
-  document.querySelectorAll('[data-i18n]').forEach(element => {
-    const translated = copy[element.dataset.i18n];
-    if (translated) element.textContent = translated;
-  });
-  document.querySelectorAll('[data-i18n-html]').forEach(element => {
-    const translated = copy[element.dataset.i18nHtml];
-    if (translated) element.innerHTML = translated;
-  });
-  const switcher = document.querySelector('#languageSwitch');
-  switcher.textContent = isChinese ? 'EN' : '中文';
-  switcher.setAttribute('aria-label', isChinese ? 'Switch to English' : '切换到中文');
-  document.querySelector('.fingerprint')?.setAttribute('aria-label', copy.fingerprintLabel);
-  document.querySelector('#observations')?.setAttribute('aria-label', copy.observationsLabel);
+  document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+  document.title = language === 'zh' ? 'taken. — 浏览器画像' : 'taken. — browser portrait';
+  $('meta[name="description"]').setAttribute('content', `${t('intro')} ${t('privacy')}`);
+  $$('[data-i18n]').forEach(element => element.textContent = t(element.dataset.i18n));
+  $('#languageSwitch').textContent = language === 'zh' ? 'EN' : '中文';
+  $('#languageSwitch').setAttribute('aria-label', language === 'zh' ? 'Switch to English' : '切换到中文');
+  $('#toolbar').setAttribute('aria-label', t('controls'));
+  $('#observations').setAttribute('aria-label', t('facts'));
+  $('#optionalResults').setAttribute('aria-label', t('optionalFacts'));
+  $('.snapshot-summary').setAttribute('aria-label', t('snapshot'));
+  $('#skipButton').textContent = t(state.revealed ? 'shown' : 'skip');
+  for (const [id, record] of [...state.records, ...state.optional]) updateRow(record);
+  $$('[data-group]').forEach(element => element.textContent = GROUPS[element.dataset.group][language]);
+  updateSummary();
+  populateBehavior();
+  filterRows();
 }
 
-applyLanguage();
-
-const state = {
-  points: 0,
-  scrollMax: 0,
-  mouseMoves: 0,
-  clicks: 0,
-  tabSwitches: 0,
-  tabLeftAt: null,
-  rendered: false
-};
-
-const $ = (selector, root = document) => root.querySelector(selector);
-const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-
-$('#languageSwitch').addEventListener('click', () => {
-  const next = isChinese ? 'en' : 'zh';
-  const url = new URL(location.href);
-  url.searchParams.set('lang', next);
-  location.assign(url);
-});
-
-document.addEventListener('mousemove', () => state.mouseMoves++, { passive: true });
-document.addEventListener('touchmove', () => state.mouseMoves++, { passive: true });
-document.addEventListener('click', () => state.clicks++);
-window.addEventListener('scroll', () => {
-  const total = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-  state.scrollMax = Math.max(state.scrollMax, Math.min(100, Math.round(scrollY / total * 100)));
-}, { passive: true });
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    state.tabSwitches++;
-    state.tabLeftAt = performance.now();
-    return;
-  }
-  if (!state.tabLeftAt) return;
-  const seconds = ((performance.now() - state.tabLeftAt) / 1000).toFixed(1);
-  const notice = $('#tabNotice');
-  notice.textContent = isChinese
-    ? `你离开了 ${seconds} 秒。你的浏览器告诉了我们。`
-    : `You left for ${seconds} seconds. Your browser told us.`;
-  notice.classList.add('visible');
-  setTimeout(() => notice.classList.remove('visible'), 4000);
-  state.tabLeftAt = null;
-});
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, character => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-  })[character]);
-}
-
-function browserName(ua) {
-  if (/Edg\//.test(ua)) return 'Edge';
-  if (/Firefox\//.test(ua)) return 'Firefox';
-  if (/OPR\//.test(ua)) return 'Opera';
-  if (/Chrome\//.test(ua)) return 'Chrome';
-  if (/Safari\//.test(ua)) return 'Safari';
-  return 'an unnamed browser';
-}
-
-function operatingSystem(ua) {
-  if (/iPhone|iPad|iPod/.test(ua)) return 'iOS';
-  if (/Android/.test(ua)) return 'Android';
-  if (/Windows/.test(ua)) return 'Windows';
-  if (/Mac OS|Macintosh/.test(ua)) return 'macOS';
-  if (/CrOS/.test(ua)) return 'ChromeOS';
-  if (/Linux/.test(ua)) return 'Linux';
-  return 'an unnamed operating system';
-}
-
-function graphicsRenderer() {
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl');
-    if (!gl) return null;
-    const extension = gl.getExtension('WEBGL_debug_renderer_info');
-    if (!extension) return 'masked by your browser';
-    return gl.getParameter(extension.UNMASKED_RENDERER_WEBGL);
-  } catch {
-    return null;
-  }
-}
-
-function installedFonts() {
-  const candidates = ['Arial', 'Georgia', 'Courier New', 'Verdana', 'Trebuchet MS', 'Garamond', 'Palatino', 'Consolas', 'Menlo', 'Monaco'];
-  const probe = document.createElement('span');
-  probe.textContent = 'mmmmmmmmmwwwww';
-  probe.style.cssText = 'position:absolute;left:-9999px;top:-9999px;font-size:72px;visibility:hidden';
-  document.body.appendChild(probe);
-  probe.style.fontFamily = 'monospace';
-  const baseline = probe.offsetWidth;
-  const found = candidates.filter(font => {
-    probe.style.fontFamily = `"${font}", monospace`;
-    return probe.offsetWidth !== baseline;
-  });
-  probe.remove();
-  return found;
-}
-
-async function batteryStatus() {
-  try {
-    if (!navigator.getBattery) return null;
-    const battery = await navigator.getBattery();
-    return { level: Math.round(battery.level * 100), charging: battery.charging };
-  } catch {
-    return null;
-  }
-}
-
-async function storageEstimate() {
-  try {
-    if (!navigator.storage?.estimate) return null;
-    const { quota = 0 } = await navigator.storage.estimate();
-    if (!quota) return null;
-    const gigabytes = quota / 1024 / 1024 / 1024;
-    return gigabytes >= 10 ? `${Math.round(gigabytes)} GB` : `${gigabytes.toFixed(1)} GB`;
-  } catch {
-    return null;
-  }
-}
-
-async function collect() {
-  const ua = navigator.userAgent;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown timezone';
-  const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
-  const battery = await batteryStatus();
-  const storage = await storageEstimate();
-  const fonts = installedFonts();
-  return {
-    browser: browserName(ua),
-    os: operatingSystem(ua),
-    timezone,
-    time: arrivedAt.toLocaleTimeString(isChinese ? 'zh-CN' : undefined, { hour: '2-digit', minute: '2-digit' }),
-    screen: `${screen.width}×${screen.height}`,
-    viewport: `${innerWidth}×${innerHeight}`,
-    pixelRatio: devicePixelRatio || 1,
-    colorDepth: screen.colorDepth,
-    touchPoints: navigator.maxTouchPoints || 0,
-    languages,
-    darkMode: matchMedia('(prefers-color-scheme: dark)').matches,
-    reducedMotion,
-    cookies: navigator.cookieEnabled,
-    dnt: navigator.doNotTrack === '1',
-    gpu: graphicsRenderer(),
-    fonts,
-    battery,
-    storage,
-    referrer: document.referrer ? new URL(document.referrer).hostname : null
-  };
-}
-
-function makeObservations(data) {
-  const observations = [];
-  state.points = 0;
-  const add = (label, datum, prose, points) => {
-    observations.push({ label, datum, prose });
-    state.points += points;
-  };
-
-  if (isChinese) {
-    add(
-      '你抵达的时间',
-      `${data.time} · ${data.timezone.replaceAll('_', ' ')}`,
-      '页面还没有完全显现，你的设备就已经报出了当地时间与时区。这些信息可以暗示你何时醒来、何时工作，以及何时在深夜仍然没有入睡。',
-      2
-    );
-
-    add(
-      '你带来的东西',
-      `${data.browser} · ${data.os} · ${data.screen} @ ${data.pixelRatio}x · ${data.colorDepth} 位色深`,
-      `你正在 ${data.os} 上使用 ${data.browser} 阅读。屏幕报告了 ${data.screen} 像素，而当前窗口占据 ${data.viewport}。${data.touchPoints ? `它还支持 ${data.touchPoints} 个同时触控点。` : '它没有报告触控输入。'}这些事实都不需要弹窗询问。`,
-      7
-    );
-
-    if (data.gpu) {
-      add(
-        '渲染你眼前世界的东西',
-        escapeHtml(data.gpu),
-        'WebGL 暴露了图形渲染器字符串。它和屏幕尺寸、软件信息组合起来，可以帮助网站从许多设备中区分出这一台。',
-        1
-      );
+function createRows(selected, target) {
+  const groups = new Map();
+  for (const check of selected) {
+    if (!groups.has(check.group)) {
+      const article = node('article', 'observation fact-group');
+      const heading = node('h2', '', GROUPS[check.group][language]);
+      heading.dataset.group = check.group;
+      const list = node('dl', 'fact-list');
+      article.append(heading, list);
+      target.append(article);
+      groups.set(check.group, list);
     }
-
-    add(
-      '你所使用的语言',
-      data.languages.map(escapeHtml).join(' · '),
-      `你的浏览器携带了${data.languages.length === 1 ? '一种首选语言' : `${data.languages.length} 种按顺序排列的首选语言`}。语言的排列顺序可能透露你的地区、旅行经历、工作环境，以及这台设备是否与他人共用。`,
-      data.languages.length
-    );
-
-    if (data.fonts.length) {
-      add(
-        '你随身携带的字体',
-        data.fonts.map(escapeHtml).join(' · '),
-        `在我们测试的一小组字体中，有 ${data.fonts.length} 种作出了回应。桌面设备中的字体会随着应用和创作工具不断累积，最终形成浏览器指纹的一部分。`,
-        data.fonts.length
-      );
-    }
-
-    if (data.battery) {
-      add(
-        '还剩下多少',
-        `电量：${data.battery.level}% · ${data.battery.charging ? '正在充电' : '未充电'}`,
-        '一些浏览器仍会暴露电池状态。不断变化的电量只在短时间内有效，但和其他数值组合后，仍可能帮助关联前后几次访问。',
-        2
-      );
-    } else {
-      add(
-        '还剩下多少',
-        '电量：浏览器没有透露',
-        '你的浏览器没有暴露电池状态。隐藏信号能够改善隐私，但“选择隐藏”这件事本身，也可能缩小你所使用浏览器的范围。',
-        1
-      );
-    }
-
-    const preferenceParts = [
-      data.cookies ? 'Cookie：已启用' : 'Cookie：已禁用',
-      data.darkMode ? '深色模式' : '浅色模式',
-      data.reducedMotion ? '减少动态效果' : '完整动态效果',
-      data.dnt ? '已发送禁止追踪信号' : '未发送禁止追踪信号'
-    ];
-    if (data.storage) preferenceParts.push(`可用存储：${data.storage}`);
-    add(
-      '你所允许的事情',
-      preferenceParts.join(' · '),
-      '操作系统分享了你的界面偏好，浏览器则说明了这个站点可以储存多少内容。本页面只使用这些信息生成你正在看到的叙事，不会把任何内容写入持久化浏览器存储。',
-      preferenceParts.length
-    );
-
-    if (data.referrer && !/localhost|127\.0\.0\.1/.test(data.referrer)) {
-      add(
-        '你之前所在的地方',
-        escapeHtml(data.referrer),
-        '来源地址告诉了我们是哪个网站把你带到这里。现代浏览器通常会隐去具体路径，但上一个站点的域名仍常常和你一起跨过门槛。',
-        1
-      );
-    }
-
-    return observations;
+    const wrapper = node('div', 'fact');
+    wrapper.dataset.factId = check.id;
+    const term = node('dt');
+    const label = node('span', 'fact-label');
+    const status = node('span', 'fact-status');
+    term.append(label, status);
+    const definition = node('dd');
+    const value = node('p', 'datum');
+    const details = node('details', 'fact-details');
+    const summary = node('summary');
+    const source = node('a', 'source-link', check.source);
+    source.href = check.docs;
+    source.target = '_blank';
+    source.rel = 'noopener noreferrer';
+    const explanation = node('p');
+    details.append(summary, source, explanation);
+    definition.append(value, details);
+    wrapper.append(term, definition);
+    groups.get(check.group).append(wrapper);
+    rows.set(check.id, { wrapper, label, status, value, summary, explanation });
+    updateRow(metadata(check));
   }
-
-  add(
-    'When you arrived',
-    `${data.time} · ${data.timezone.replaceAll('_', ' ')}`,
-    'Your device named its local time and timezone before the page finished appearing. That can suggest when you wake, when you work and when you are awake later than usual.',
-    2
-  );
-
-  add(
-    'What you brought with you',
-    `${data.browser} · ${data.os} · ${data.screen} @ ${data.pixelRatio}x · ${data.colorDepth}-bit color`,
-    `You are reading in ${data.browser} on ${data.os}. Your screen reported ${data.screen} pixels while this window occupies ${data.viewport}. ${data.touchPoints ? `It also accepts ${data.touchPoints} simultaneous touch points.` : 'It reports no touch input.'} None of these facts required a prompt.`,
-    7
-  );
-
-  if (data.gpu) {
-    add(
-      'What renders your world',
-      escapeHtml(data.gpu),
-      'WebGL exposed a graphics renderer string. Combined with screen size and software details, it can help separate this device from a crowd of others.',
-      1
-    );
-  }
-
-  add(
-    'What you speak',
-    data.languages.map(escapeHtml).join(' · '),
-    `Your browser carries ${data.languages.length === 1 ? 'one preferred language' : `${data.languages.length} preferred languages`}. Language order can reveal region, travel, work and the people with whom a device is shared.`,
-    data.languages.length
-  );
-
-  if (data.fonts.length) {
-    add(
-      'What you carry',
-      data.fonts.map(escapeHtml).join(' · '),
-      `Of a small list we tested, ${data.fonts.length} typefaces answered. A font list changes as apps and creative tools accumulate; on desktop, that combination can become part of a fingerprint.`,
-      data.fonts.length
-    );
-  }
-
-  if (data.battery) {
-    add(
-      'How much is left',
-      `Battery: ${data.battery.level}% · ${data.battery.charging ? 'charging' : 'not charging'}`,
-      'Some browsers still expose battery status. A changing percentage is short-lived, but paired with other values it can help correlate visits for a while.',
-      2
-    );
-  } else {
-    add(
-      'How much is left',
-      'Battery: kept back',
-      'Your browser did not expose battery status. Hiding a signal improves privacy, though the choice to hide it can itself narrow down which browser you use.',
-      1
-    );
-  }
-
-  const preferenceParts = [
-    data.cookies ? 'Cookies: enabled' : 'Cookies: disabled',
-    data.darkMode ? 'Dark mode' : 'Light mode',
-    data.reducedMotion ? 'Reduced motion' : 'Full motion',
-    data.dnt ? 'Do Not Track' : 'No Do Not Track signal'
-  ];
-  if (data.storage) preferenceParts.push(`Storage offered: ${data.storage}`);
-  add(
-    'What you allow',
-    preferenceParts.join(' · '),
-    `The operating system shared interface preferences and the browser described what this origin could store. This page uses that information only to render what you see. It writes nothing to persistent browser storage.`,
-    preferenceParts.length
-  );
-
-  if (data.referrer && !/localhost|127\.0\.0\.1/.test(data.referrer)) {
-    add(
-      'Where you were before',
-      escapeHtml(data.referrer),
-      'The referrer header identified the site that led you here. Modern browsers usually trim the exact path, but the previous origin often still crosses the doorway with you.',
-      1
-    );
-  }
-
-  return observations;
 }
 
-function renderObservations(observations) {
-  $('#observations').innerHTML = observations.map((item, index) => `
-    ${index ? `<div class="divider" data-index="${index}"></div>` : ''}
-    <article class="observation" data-index="${index}">
-      <h2>${item.label}</h2>
-      <p class="datum">${item.datum}</p>
-      <p class="prose">${item.prose}</p>
-    </article>
-  `).join('');
+function updateRow(record) {
+  const row = rows.get(record.id);
+  if (!row) return;
+  row.label.textContent = record.label[language];
+  row.status.textContent = STATUS[record.status][language];
+  row.status.dataset.status = record.status;
+  row.value.textContent = formatValue(record, language);
+  row.summary.textContent = t('source');
+  row.explanation.textContent = record.note[language];
 }
 
-function createTick(element) {
-  const tick = document.createElement('i');
-  tick.className = 'dossier-tick';
-  tick.style.top = `${element.getBoundingClientRect().top + scrollY + 14}px`;
-  document.body.appendChild(tick);
-  requestAnimationFrame(() => tick.classList.add('visible'));
+function updateSummary() {
+  const records = [...state.records.values()];
+  const available = records.filter(record => record.status === 'available').length;
+  const pending = records.filter(record => record.status === 'pending').length;
+  $('#scanStatus').textContent = t(state.scanMessage);
+  $('#optionalStatus').textContent = state.optionalMessage ? t(state.optionalMessage) : '';
+  $('#summaryCount').textContent = language === 'zh'
+    ? `${records.length} 个字段 · ${available} 项已获取 · ${pending} 项读取中 · ${records.length - available - pending} 项未获取`
+    : `${records.length} fields · ${available} available · ${pending} reading · ${records.length - available - pending} not available`;
+  $('#snapshotTime').textContent = state.capturedAt ? `${t('checked')}: ${new Date(state.capturedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en')}` : '';
 }
 
-function hashBars(seed) {
-  let hash = 2166136261;
-  for (const character of seed) {
-    hash ^= character.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
+function filterRows() {
+  const query = $('#filterInput').value.trim().toLocaleLowerCase();
+  const availableOnly = $('#availableOnly').checked;
+  let visible = 0;
+  for (const record of state.records.values()) {
+    const row = rows.get(record.id);
+    const matches = `${record.label.en} ${record.label.zh} ${record.source} ${formatValue(record, language)}`.toLocaleLowerCase().includes(query);
+    row.wrapper.hidden = !matches || (availableOnly && record.status !== 'available');
+    if (!row.wrapper.hidden) visible++;
   }
-  return Array.from({ length: 16 }, (_, index) => {
-    hash ^= index + 1;
-    hash = Math.imul(hash ^ (hash >>> 13), 1274126177);
-    return 7 + (Math.abs(hash) % 26);
-  });
+  $$('#observations .fact-group').forEach(group => { group.hidden = ![...group.querySelectorAll('.fact')].some(row => !row.hidden); });
+  $('#emptyResults').hidden = visible > 0;
 }
 
-function animateNumber(element, target) {
-  if (reducedMotion) {
-    element.textContent = target;
-    return;
-  }
-  const began = performance.now();
-  const frame = now => {
-    const amount = Math.min(1, (now - began) / 1300);
-    element.textContent = Math.round(target * (1 - Math.pow(1 - amount, 3)));
-    if (amount < 1) requestAnimationFrame(frame);
-  };
-  requestAnimationFrame(frame);
+function reveal() {
+  state.revealed = true;
+  $('#inspector').hidden = false;
+  $('#skipButton').disabled = true;
+  $('#skipButton').textContent = t('shown');
+  document.body.classList.add('revealed');
 }
 
-function renderClosing(data) {
-  const seed = [data.browser, data.os, data.screen, data.timezone, data.languages.join(','), data.gpu].join('|');
-  const closingCopy = isChinese ? {
-    barcodeLabel: '由这台浏览器生成的条形码',
-    dataPoints: '数据点',
-    tallyMeta: '0 个问题 &nbsp;·&nbsp; 本页面储存 0 字节',
-    thesis: '你访问的每个页面，都能知道某种版本的这些信息。<br />多数页面只是保持沉默。<br />这个页面选择把过程展示给你。',
-    oneMore: '还有一件事',
-    stillHere: '你还在这里。',
-    final: '你没有留下姓名，也没有填写表单。<br />你的浏览器仍然画出了一幅画像。<br /><br />',
-    finalTag: '看看是什么与你一同抵达。'
-  } : {
-    barcodeLabel: 'A barcode derived from this browser',
-    dataPoints: 'data points',
-    tallyMeta: '0 questions asked &nbsp;·&nbsp; 0 bytes stored by this page',
-    thesis: 'Every page you visit can learn some version of this.<br />Most learn quietly.<br />This one chose to show its work.',
-    oneMore: 'And one more thing',
-    stillHere: 'You are still here.',
-    final: 'You gave no name. You filled in no form.<br />Your browser still drew a portrait.<br /><br />',
-    finalTag: 'Look at what arrives with you.'
-  };
-  $('#closing').innerHTML = `
-    <div class="closing-block tally">
-      <div class="tally-number" id="tallyNumber">0</div>
-      <div class="barcode" role="img" aria-label="${closingCopy.barcodeLabel}">${hashBars(seed).map(height => `<i style="height:${height}px"></i>`).join('')}</div>
-      <div class="tally-label">${closingCopy.dataPoints}</div>
-      <div class="tally-meta">${closingCopy.tallyMeta}</div>
-    </div>
-    <div class="closing-block thesis">
-      ${closingCopy.thesis}
-    </div>
-    <div class="closing-block behavior" id="behaviorBlock">
-      <span class="closing-label">${closingCopy.oneMore}</span>
-      <span class="datum">${closingCopy.stillHere}</span>
-      <span id="behaviorText"></span>
-    </div>
-    <div class="closing-block final-statement" id="finalBlock">
-      ${closingCopy.final}
-      <span class="final-tag">${closingCopy.finalTag}</span>
-    </div>
-  `;
+function clearOptional({ announce = true } = {}) {
+  state.optionalGeneration++;
+  state.optionalBusy = 0;
+  for (const id of state.optional.keys()) rows.delete(id);
+  state.optional.clear();
+  $('#optionalResults').replaceChildren();
+  $('#detailsButton').disabled = false;
+  $('#permissionsButton').disabled = false;
+  $('#clearOptionalButton').hidden = true;
+  state.optionalMessage = announce ? 'optionalCleared' : '';
+  updateSummary();
+}
+
+async function refresh() {
+  const generation = ++state.generation;
+  clearOptional({ announce: false });
+  state.collecting = true;
+  state.capturedAt = new Date().toISOString();
+  state.records = new Map(checks.map(check => [check.id, metadata(check)]));
+  state.scanMessage = 'reading';
+  $('#exportButton').disabled = true;
+  for (const record of state.records.values()) updateRow(record);
+  updateSummary();
+  filterRows();
+  await collectFacts({ onResult: result => {
+    if (generation !== state.generation) return;
+    state.records.set(result.id, result);
+    updateRow(result);
+    filterRows();
+    updateSummary();
+  } });
+  if (generation !== state.generation) return;
+  state.collecting = false;
+  state.scanMessage = 'ready';
+  $('#exportButton').disabled = false;
+  updateSummary();
+}
+
+async function runOptional(selected, button) {
+  const generation = state.optionalGeneration;
+  const mainGeneration = state.generation;
+  button.disabled = true;
+  state.optionalBusy++;
+  state.optionalMessage = 'optionalReading';
+  for (const check of selected) state.optional.set(check.id, metadata(check));
+  createRows(selected, $('#optionalResults'));
+  $('#clearOptionalButton').hidden = false;
+  updateSummary();
+  await collectFacts({ selected, onResult: result => {
+    if (generation !== state.optionalGeneration || mainGeneration !== state.generation) return;
+    state.optional.set(result.id, result);
+    updateRow(result);
+  } });
+  if (generation !== state.optionalGeneration || mainGeneration !== state.generation) return;
+  state.optionalBusy--;
+  state.optionalMessage = state.optionalBusy ? 'optionalReading' : 'optionalReady';
+  updateSummary();
 }
 
 function populateBehavior() {
   const seconds = Math.round((performance.now() - startedAt) / 1000);
-  $('#behaviorText').textContent = isChinese
-    ? `在 ${seconds} 秒里，你滚动了页面的 ${state.scrollMax}%，移动指针 ${state.mouseMoves.toLocaleString('zh-CN')} 次，点击 ${state.clicks} 次，并离开标签页 ${state.tabSwitches} 次。这些信号只停留在当前页面中，关闭后便会消失。`
-    : `In ${seconds} seconds you scrolled ${state.scrollMax}% of the page, moved a pointer ${state.mouseMoves.toLocaleString()} times, clicked ${state.clicks} times and left the tab ${state.tabSwitches} times. These signals stayed in this page and disappear when you close it.`;
+  $('#behaviorText').textContent = language === 'zh'
+    ? `停留 ${seconds} 秒 · 滚动最远 ${state.scrollMax}% · 指针/触控移动 ${state.moves} 次 · 点击 ${state.clicks} 次 · 离开标签页 ${state.tabSwitches} 次`
+    : `${seconds}s here · ${state.scrollMax}% maximum scroll · ${state.moves} pointer/touch moves · ${state.clicks} clicks · ${state.tabSwitches} tab departures`;
 }
 
-function runChoreography(observations, data) {
-  const base = reducedMotion ? 50 : 4300;
-  const gap = reducedMotion ? 20 : 1550;
-  setTimeout(() => $('#scanning').classList.add('done'), Math.max(0, base - 300));
-  const elements = $$('.observation');
-  elements.forEach((element, index) => {
-    setTimeout(() => {
-      element.classList.add('visible');
-      $(`.divider[data-index="${index}"]`)?.classList.add('visible');
-      $('#dossierRule').style.height = `${Math.round((index + 1) / elements.length * 100)}vh`;
-      createTick(element);
-    }, base + index * gap);
-  });
+document.addEventListener('pointermove', () => state.moves++, { passive: true });
+// Pointer events cover mice, pens, and touch without double-counting touchmove.
+document.addEventListener('click', () => state.clicks++);
+document.addEventListener('visibilitychange', () => { if (document.hidden) state.tabSwitches++; });
+window.addEventListener('scroll', () => { state.scrollMax = Math.max(state.scrollMax, Math.min(100, Math.round(scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight) * 100))); }, { passive: true });
+setInterval(() => { if (!document.hidden) populateBehavior(); }, 1000);
 
-  setTimeout(() => {
-    $('#liveCounter').classList.add('visible');
-  }, base + Math.min(2, elements.length - 1) * gap);
-
-  const climax = base + observations.length * gap + (reducedMotion ? 20 : 800);
-  renderClosing(data);
-  $$('.closing-block').forEach((block, index) => {
-    setTimeout(() => {
-      block.classList.add('visible');
-      if (index === 0) animateNumber($('#tallyNumber'), state.points);
-      if (block.id === 'behaviorBlock') populateBehavior();
-    }, climax + index * (reducedMotion ? 20 : 1450));
-  });
-  setTimeout(() => {
-    $('#footer').classList.add('visible');
-    $('#liveCounter').classList.remove('visible');
-    state.rendered = true;
-  }, climax + 4 * (reducedMotion ? 20 : 1450));
-}
-
-setInterval(() => {
-  const elapsed = Math.round((performance.now() - startedAt) / 1000);
-  $('#liveCounter').innerHTML = isChinese
-    ? `<span>${state.points}</span> 个数据点 &nbsp;·&nbsp; 已停留 <span>${elapsed} 秒</span> &nbsp;·&nbsp; 已读 <span>${state.scrollMax}%</span>`
-    : `<span>${state.points}</span> data points &nbsp;·&nbsp; <span>${elapsed}s</span> here &nbsp;·&nbsp; <span>${state.scrollMax}%</span> read`;
-}, 500);
-
-function openModal(name) {
-  const modal = name === 'share' ? $('#shareModal') : $('#sourcesModal');
-  if (name === 'share') {
-    $('#shareTally').textContent = isChinese
-      ? `${state.points} 个浏览器数据点 · 0 个问题`
-      : `${state.points} browser data points · 0 questions asked`;
-  }
-  modal.showModal();
-}
-
-$$('[data-open]').forEach(link => link.addEventListener('click', event => {
-  event.preventDefault();
-  openModal(link.dataset.open);
-}));
-
-$$('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
-$$('dialog').forEach(dialog => dialog.addEventListener('click', event => {
-  if (event.target === dialog) dialog.close();
-}));
-
-$$('[data-share]').forEach(button => button.addEventListener('click', async () => {
-  const url = location.href;
-  const text = isChinese
-    ? '一个页面没有问我任何问题，却描述出了我的设备。'
-    : 'A page just described my device without asking a question.';
-  const destinations = {
-    x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-    bluesky: `https://bsky.app/intent/compose?text=${encodeURIComponent(`${text} ${url}`)}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
-  };
-  if (button.dataset.share === 'copy') {
-    await navigator.clipboard.writeText(url);
-    button.textContent = staticCopy[language].copied;
-    setTimeout(() => button.textContent = staticCopy[language].copyLink, 1800);
-    return;
-  }
-  open(destinations[button.dataset.share], '_blank', 'noopener,noreferrer');
-}));
-
-collect().then(data => {
-  const observations = makeObservations(data);
-  renderObservations(observations);
-  runChoreography(observations, data);
-}).catch(() => {
-  $('#scanning').innerHTML = isChinese
-    ? '<p>无法读取这个浏览器。这是个不同寻常的好消息。</p>'
-    : '<p>Unable to read this browser. That is unusually good news.</p>';
+$('#skipButton').addEventListener('click', reveal);
+$('#refreshButton').addEventListener('click', () => { reveal(); refresh(); });
+$('#detailsButton').addEventListener('click', () => runOptional(detailChecks, $('#detailsButton')));
+$('#permissionsButton').addEventListener('click', () => runOptional(permissionChecks, $('#permissionsButton')));
+$('#clearOptionalButton').addEventListener('click', () => clearOptional());
+$('#filterInput').addEventListener('input', filterRows);
+$('#availableOnly').addEventListener('change', filterRows);
+$('#languageSwitch').addEventListener('click', () => {
+  language = language === 'en' ? 'zh' : 'en';
+  const url = new URL(location.href);
+  url.searchParams.set('lang', language);
+  history.replaceState(null, '', url);
+  $('#copyStatus').textContent = '';
+  applyLanguage();
 });
+$('#exportButton').addEventListener('click', () => {
+  try {
+    const snapshot = exportSnapshot([...state.records.values(), ...state.optional.values()], state.capturedAt);
+    const blob = new Blob([`${JSON.stringify(snapshot, null, 2)}\n`], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `taken-browser-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    state.scanMessage = 'exportDone';
+  } catch { state.scanMessage = 'exportFailed'; }
+  updateSummary();
+});
+
+$$('[data-open]').forEach(button => button.addEventListener('click', () => {
+  const dialog = button.dataset.open === 'share' ? $('#shareModal') : $('#sourcesModal');
+  if (button.dataset.open === 'share') {
+    copyGeneration++;
+    $('#copyButton').disabled = false;
+    $('#shareUrl').value = cleanShareUrl(location.href);
+    $('#copyStatus').textContent = '';
+  }
+  if (!dialog.open) dialog.showModal();
+}));
+$$('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+$$('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
+$('#shareModal').addEventListener('close', () => {
+  copyGeneration++;
+  $('#copyButton').disabled = false;
+  $('#copyStatus').textContent = '';
+});
+$('#copyButton').addEventListener('click', async () => {
+  const generation = ++copyGeneration;
+  $('#copyButton').disabled = true;
+  $('#copyStatus').textContent = '';
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+    await withTimeout(() => navigator.clipboard.writeText($('#shareUrl').value));
+    if (generation !== copyGeneration || !$('#shareModal').open) return;
+    $('#copyStatus').textContent = t('copied');
+  } catch {
+    if (generation !== copyGeneration || !$('#shareModal').open) return;
+    $('#copyStatus').textContent = t('copyFailed');
+    $('#shareUrl').focus();
+    $('#shareUrl').select();
+  } finally { if (generation === copyGeneration) $('#copyButton').disabled = false; }
+});
+
+$('#inspector').hidden = true;
+createRows(checks, $('#observations'));
+applyLanguage();
+refresh();
+if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) reveal();
+else setTimeout(reveal, 1400);

@@ -4,108 +4,88 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#090909" />
-    <meta name="description" content="A browser privacy story, revealed from the data your browser shares." />
+    <meta name="description" content="Explore what standard browser APIs reveal, locally and transparently." />
+    <meta name="referrer" content="no-referrer" />
     <title>taken. — browser portrait</title>
     <link rel="preload" href="/fonts/eb-garamond-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <button class="language-switch" id="languageSwitch" type="button" aria-label="切换语言">中文</button>
-
-    <noscript>
-      <main class="no-script">
-        <div class="series-label">浏览器画像 · A browser portrait</div>
-        <h1>taken.</h1>
-        <p>这个页面需要 JavaScript；故事来自浏览器主动透露的信息。</p>
-        <p lang="en">This page needs JavaScript. The story is made from what your browser reveals.</p>
-      </main>
-    </noscript>
-
-    <div class="dossier-rule" id="dossierRule" aria-hidden="true"></div>
-
+    <button class="language-switch" id="languageSwitch" type="button" aria-label="切换到中文">中文</button>
+    <noscript><main class="no-script"><h1>taken.</h1><p>需要 JavaScript 才能在本地读取浏览器信息。</p><p lang="en">JavaScript is needed to read browser information locally.</p></main></noscript>
     <main class="page" id="page">
       <header class="intro">
-        <p class="series-label" data-i18n="series">A browser portrait · Vol. I</p>
+        <p class="series-label" data-i18n="series">A browser portrait · Local edition</p>
         <h1 class="title">taken.</h1>
-        <p class="intro-line" data-i18n="intro">You opened this page. It already knows the following.</p>
+        <p class="intro-line" data-i18n="intro">See what arrives with your browser.</p>
+        <p class="privacy-note" data-i18n="privacy">Calculated here. No accounts, cloud APIs, analytics, or uploads.</p>
       </header>
-
-      <section class="scanning" id="scanning" aria-live="polite">
-        <p data-i18n="reading">reading</p>
-        <svg class="fingerprint" viewBox="0 0 64 64" role="img" aria-label="Reading browser information">
-          <path d="M19 44c-2-6-2-15 2-20 5-7 17-7 22 0 4 5 4 13 1 19M23 49c-4-7-5-17 0-24 4-5 13-6 18-1 5 5 5 14 1 23M28 51c-3-7-4-15 0-21 2-4 8-4 11-1 4 4 3 12 0 19M33 48c-2-5-2-10 0-14" fill="none" stroke="currentColor" stroke-linecap="round"/>
-          <line class="scan-line" x1="7" y1="4" x2="57" y2="4" stroke="currentColor" />
-        </svg>
+      <nav class="toolbar" aria-label="Browser inspector controls" id="toolbar">
+        <button type="button" id="skipButton" data-i18n="skip">Show now</button>
+        <button type="button" id="refreshButton" data-i18n="refresh">Check again</button>
+        <button type="button" id="exportButton" disabled data-i18n="export">Export local JSON</button>
+      </nav>
+      <p class="export-note" data-i18n="exportNote">Export includes device and setting details. Review the downloaded file before sharing.</p>
+      <section class="snapshot-summary" aria-label="Snapshot status">
+        <p id="scanStatus" role="status" aria-live="polite"></p>
+        <p id="snapshotTime"></p>
+        <p class="summary-count" id="summaryCount"></p>
       </section>
-
-      <section class="observations" id="observations" aria-label="What your browser disclosed"></section>
-      <section class="closing" id="closing"></section>
-
-      <footer class="footer" id="footer">
-        <p>
-          <a href="#" data-open="sources" data-i18n="readSources">Read the sources</a>
-          <span aria-hidden="true">·</span>
-          <a href="#" data-open="share" data-i18n="tellSomeone">Tell someone</a>
-        </p>
-        <p class="footer-meta" data-i18n="edition">A browser portrait · August 2026</p>
-        <p class="credit" data-i18n-html="credit">An independent study inspired by <a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">Since You Arrived · Vol. IV</a>.</p>
+      <div id="inspector" class="inspector">
+        <div class="filter-bar">
+          <label for="filterInput" data-i18n="filter">Find a field</label>
+          <input id="filterInput" type="search" autocomplete="off" spellcheck="false" />
+          <label class="filter-check"><input type="checkbox" id="availableOnly" /><span data-i18n="availableOnly">Available only</span></label>
+        </div>
+        <p id="emptyResults" hidden data-i18n="empty">No matching fields.</p>
+        <section class="observations" id="observations" aria-label="Browser facts"></section>
+      </div>
+      <section class="optional-panel" aria-labelledby="optionalHeading">
+        <h2 id="optionalHeading" data-i18n="optional">Look a little closer</h2>
+        <p data-i18n="optionalNote">Optional checks run only when you press their button. Permission states are read without asking for new access; location, camera, and microphone are never activated.</p>
+        <div class="toolbar">
+          <button type="button" id="detailsButton" data-i18n="details">Inspect graphics & font hints</button>
+          <button type="button" id="permissionsButton" data-i18n="permissions">Read permission states</button>
+        </div>
+        <p id="optionalStatus" role="status" aria-live="polite"></p>
+        <section id="optionalResults" class="optional-results" aria-label="Optional browser facts"></section>
+        <button type="button" id="clearOptionalButton" hidden data-i18n="clearOptional">Clear optional results</button>
+      </section>
+      <section class="closing" id="closing">
+        <h2 data-i18n="sessionHeading">This tab, this moment</h2>
+        <p id="behaviorText"></p>
+        <p class="privacy-note" data-i18n="sessionNote">Only aggregate counters in this page’s memory. No keystrokes, pointer coordinates, browsing history, or cross-site identifier.</p>
+      </section>
+      <footer class="footer visible" id="footer">
+        <p><button type="button" class="text-button" data-open="sources" data-i18n="sources">Sources & limits</button><span aria-hidden="true">·</span><button type="button" class="text-button" data-open="share" data-i18n="share">Copy page link</button></p>
+        <p class="footer-meta" data-i18n="edition">Standard APIs. Nothing bypassed.</p>
+        <p class="credit"><span data-i18n="credit">An independent study inspired by </span><a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">Since You Arrived · Vol. IV</a>.</p>
       </footer>
     </main>
-
-    <div class="live-counter" id="liveCounter" aria-hidden="true"></div>
-    <div class="tab-notice" id="tabNotice" role="status" aria-live="polite"></div>
-
     <dialog class="modal" id="shareModal" aria-labelledby="shareHeading">
       <div class="modal-card share-card">
-        <p class="modal-kicker" data-i18n="shareKicker">— Tell Someone —</p>
-        <h2 id="shareHeading" data-i18n="shareHeading">A page just described my device without asking a question.</h2>
-        <p class="share-tally" id="shareTally"></p>
-        <div class="share-buttons">
-          <button type="button" data-share="x">𝕏 (Twitter)</button>
-          <button type="button" data-share="bluesky">Bluesky</button>
-          <button type="button" data-share="linkedin">LinkedIn</button>
-          <button type="button" data-share="copy" data-i18n="copyLink">Copy link</button>
-        </div>
+        <h2 id="shareHeading" data-i18n="shareHeading">Share the page, not your snapshot.</h2>
+        <p data-i18n="shareNote">This link excludes the query string, fragment, and all detected values. No social network is contacted by this page.</p>
+        <label for="shareUrl" data-i18n="pageLink">Page link</label>
+        <input id="shareUrl" type="url" readonly />
+        <button type="button" id="copyButton" data-i18n="copy">Copy link</button>
+        <p id="copyStatus" role="status"></p>
         <button class="close-button" type="button" data-close data-i18n="close">Close</button>
       </div>
     </dialog>
-
     <dialog class="modal" id="sourcesModal" aria-labelledby="sourcesHeading">
       <div class="modal-card sources-card">
-        <p class="modal-kicker" data-i18n="sourcesKicker">— A Note On What You Gave —</p>
-        <h2 id="sourcesHeading" data-i18n="sourcesHeading">Sources &amp; confessions</h2>
-        <p class="modal-lede" data-i18n="sourcesLede">Every observation was assembled in your browser from standard web APIs. Nothing is stored by this replica.</p>
+        <h2 id="sourcesHeading" data-i18n="sourcesHeading">Sources & limits</h2>
+        <p class="modal-lede" data-i18n="sourcesNote">Every field names its documented browser API and links to its source. Missing values can mean unsupported APIs, privacy protections, policy restrictions, or a timeout. They are never treated as proof about you.</p>
         <div class="source-list">
-          <article>
-            <h3 data-i18n="sourceBrowserTitle">Browser APIs</h3>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noreferrer" data-i18n="sourceBrowserCite">MDN Web Docs · Mozilla</a>
-            <p data-i18n="sourceBrowserBody">Screen, language, preferences, storage estimates and graphics data are exposed through standard JavaScript APIs.</p>
-          </article>
-          <article>
-            <h3 data-i18n="sourceFontTitle">Font fingerprinting</h3>
-            <a href="https://coveryourtracks.eff.org/" target="_blank" rel="noreferrer" data-i18n="sourceFontCite">Electronic Frontier Foundation · Cover Your Tracks</a>
-            <p data-i18n="sourceFontBody">Small differences in installed fonts can help distinguish one browser from another without a cookie.</p>
-          </article>
-          <article>
-            <h3 data-i18n="sourceWebglTitle">WebGL fingerprinting</h3>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API" target="_blank" rel="noreferrer" data-i18n="sourceWebglCite">MDN · WebGL API</a>
-            <p data-i18n="sourceWebglBody">A graphics renderer string may reveal the GPU family or may show that the browser deliberately masked it.</p>
-          </article>
-          <article>
-            <h3 data-i18n="sourceStorageTitle">What this page stores</h3>
-            <p class="source-cite" data-i18n="sourceStorageCite">Nothing</p>
-            <p data-i18n="sourceStorageBody">No cookies, localStorage, sessionStorage or analytics are used. Reloading starts the story again.</p>
-          </article>
-          <article>
-            <h3 data-i18n="sourceOriginalTitle">The original work</h3>
-            <a href="https://sinceyouarrived.world/taken" target="_blank" rel="noreferrer">sinceyouarrived.world/taken</a>
-            <p data-i18n="sourceOriginalBody">This is a from-scratch educational recreation of its interaction language, with new structure and condensed copy.</p>
-          </article>
+          <article><h3 data-i18n="localTitle">What stays local</h3><p data-i18n="localNote">Results live only in this tab’s memory. The app never writes cookies, localStorage, sessionStorage, IndexedDB, or an identifier. Export creates a file only when you ask. Reloading or clearing optional results discards them from the page; downloaded files remain on your device.</p></article>
+          <article><h3 data-i18n="networkTitle">What uses the network</h3><p data-i18n="networkNote">Your browser downloads this page, scripts, styles, and bundled fonts from its host. Like any website, the host can see ordinary requests and may log them; this app cannot control hosting logs. Detection sends no requests. External documentation links open only when clicked. Browser vendors may implement APIs internally; this app cannot audit the browser itself.</p></article>
+          <article><h3 data-i18n="limitsTitle">No hidden access</h3><p data-i18n="limitsNote">No IP lookup, geolocation retrieval, camera or microphone capture, WebRTC/STUN/TURN, port scan, network speed test, exploit, or permission bypass. API presence does not mean permission. Reported values can be approximate, masked, stale, or spoofed.</p></article>
+          <article><h3 data-i18n="permissionTitle">Permissions stay yours</h3><p data-i18n="permissionNote">The optional permission check only reads existing states. “Prompt” means a real access attempt would need your permission; this page never makes that attempt. Manage permissions in your browser’s site settings.</p></article>
         </div>
         <button class="close-button" type="button" data-close data-i18n="close">Close</button>
       </div>
     </dialog>
-
     <script type="module" src="/app.js"></script>
   </body>
 </html>

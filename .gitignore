@@ -1,0 +1,21 @@
+# Dependencies and generated builds
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs and machine-specific files
+*.log
+.DS_Store
+Thumbs.db
+
+# Browser-test output
+playwright-report/
+test-results/
+playwright/.cache/
