@@ -465,3 +465,143 @@ test('DOM: dialog close and backdrop events update modal state without cross-clo
   app.$('#sourcesModal [data-close]').click();
   assert.equal(app.$('#sourcesModal').open, false);
 });
+
+
+test('DOM: export waits for optional reads, and clearing them restores export readiness', async t => {
+  let pending = deferred();
+  const app = setup(t, { beforeStart(window) {
+    window.navigator.permissions.query = () => pending.promise;
+  } });
+  await app.ready();
+  app.$('#permissionsButton').click();
+  await tick();
+  assert.equal(app.$('#exportButton').disabled, true, 'Pending optional results must not be exported');
+  app.$('#exportButton').click();
+  assert.equal(app.calls.downloads.length, 0);
+  pending.resolve({ state: 'granted' });
+  await app.optionalReady();
+  assert.equal(app.$('#exportButton').disabled, false);
+  app.$('#exportButton').click();
+  const completed = await readDownload(app);
+  assert.ok(completed.snapshot.facts.every(fact => fact.status !== 'pending'));
+  assert.equal(completed.snapshot.facts.find(fact => fact.id === 'permission-camera').value, 'granted');
+
+  app.$('#clearOptionalButton').click();
+  pending = deferred();
+  app.$('#permissionsButton').click();
+  await tick();
+  assert.equal(app.$('#exportButton').disabled, true);
+  app.$('#clearOptionalButton').click();
+  assert.equal(app.$('#exportButton').disabled, false, 'Cleared optional reads no longer block the ready main snapshot');
+  app.$('#exportButton').click();
+  assert.equal((await readDownload(app)).snapshot.facts.length, browserInfo.checks.length);
+  pending.resolve({ state: 'denied' });
+  await Promise.all(app.collections);
+});
+
+
+test('DOM: export readiness waits for both main and optional collections in either completion order', async t => {
+  for (const mainFirst of [true, false]) {
+    const main = deferred();
+    const optional = deferred();
+    const app = setup(t, { beforeStart(window) {
+      define(window.navigator, 'getBattery', () => main.promise);
+      window.navigator.permissions.query = () => optional.promise;
+    } });
+    app.$('#permissionsButton').click();
+    await tick();
+    assert.equal(app.$('#exportButton').disabled, true);
+    if (mainFirst) {
+      main.resolve({ level: 0.5, charging: false });
+      await app.ready();
+    } else {
+      optional.resolve({ state: 'prompt' });
+      await app.optionalReady();
+    }
+    assert.equal(app.$('#exportButton').disabled, true, 'The other collection is still reading');
+    main.resolve({ level: 0.5, charging: false });
+    optional.resolve({ state: 'prompt' });
+    await Promise.all(app.collections);
+    await tick();
+    assert.equal(app.$('#exportButton').disabled, false);
+  }
+});
+
+test('DOM: an optional timeout restores export with its final timeout status', async t => {
+  const app = setup(t, { beforeStart(window) {
+    window.navigator.permissions.query = () => new Promise(() => {});
+  } });
+  await app.ready();
+  app.$('#permissionsButton').click();
+  assert.equal(app.$('#exportButton').disabled, true);
+  await app.optionalReady();
+  assert.equal(app.$('#exportButton').disabled, false);
+  app.$('#exportButton').click();
+  const download = await readDownload(app);
+  assert.ok(download.snapshot.facts.filter(fact => fact.id.startsWith('permission-')).every(fact => fact.status === 'timeout'));
+});
+
+test('DOM: search survives refresh and updates matches when the new value arrives', async t => {
+  const app = setup(t);
+  await app.ready();
+  app.input('90%');
+  assert.equal(app.$('#emptyResults').hidden, false);
+  const battery = deferred();
+  define(app.window.navigator, 'getBattery', () => battery.promise);
+  app.$('#refreshButton').click();
+  assert.equal(app.$('#filterInput').value, '90%');
+  assert.equal(app.fact('battery').hidden, true);
+  battery.resolve({ level: 0.9, charging: false });
+  await app.ready();
+  assert.equal(app.$('#emptyResults').hidden, true);
+  assert.deepEqual(app.all('#observations .fact').filter(row => !row.hidden).map(row => row.dataset.factId), ['battery']);
+  app.input('navigator.getBattery');
+  assert.equal(app.fact('battery').hidden, false);
+  app.$('#languageSwitch').click();
+  assert.equal(app.fact('battery').hidden, false);
+  assert.equal(app.fact('battery').querySelector('.datum').textContent, '90% · 未充电');
+});
+
+test('DOM: clearing and retrying optional reads isolates the newer export readiness', async t => {
+  const old = deferred();
+  const current = deferred();
+  let batch = old;
+  const app = setup(t, { beforeStart(window) {
+    window.navigator.permissions.query = () => batch.promise;
+  } });
+  await app.ready();
+  app.$('#permissionsButton').click();
+  await tick();
+  app.$('#clearOptionalButton').click();
+  batch = current;
+  app.$('#permissionsButton').click();
+  await tick();
+  old.resolve({ state: 'granted' });
+  await tick();
+  assert.equal(app.$('#exportButton').disabled, true);
+  assert.equal(app.$('#optionalStatus').textContent, 'Reading optional local checks…');
+  assert.equal(app.fact('permission-camera').querySelector('.fact-status').dataset.status, 'pending');
+  current.resolve({ state: 'denied' });
+  await app.optionalReady();
+  assert.equal(app.$('#exportButton').disabled, false);
+  assert.equal(app.fact('permission-camera').querySelector('.datum').textContent, 'Denied');
+  assert.equal(app.all('#optionalResults .fact').length, 4);
+});
+
+test('DOM: a failed copy can be retried successfully without reopening the dialog', async t => {
+  let attempts = 0;
+  const app = setup(t, { beforeStart(window) {
+    define(window.navigator, 'clipboard', { writeText: async () => {
+      if (++attempts === 1) throw new window.DOMException('Denied', 'NotAllowedError');
+    } });
+  } });
+  await app.ready();
+  app.$('[data-open="share"]').click();
+  app.$('#copyButton').click();
+  await waitFor(() => !app.$('#copyButton').disabled, 'the failed copy');
+  assert.match(app.$('#copyStatus').textContent, /Clipboard unavailable/);
+  app.$('#copyButton').click();
+  await waitFor(() => !app.$('#copyButton').disabled, 'the successful retry');
+  assert.equal(app.$('#copyStatus').textContent, 'Link copied.');
+  assert.equal(attempts, 2);
+});

@@ -122,6 +122,7 @@ function updateRow(record) {
 }
 
 function updateSummary() {
+  $('#exportButton').disabled = state.collecting || state.optionalBusy > 0;
   const records = [...state.records.values()];
   const available = records.filter(record => record.status === 'available').length;
   const pending = records.filter(record => record.status === 'pending').length;
@@ -175,7 +176,6 @@ async function refresh() {
   state.capturedAt = new Date().toISOString();
   state.records = new Map(checks.map(check => [check.id, metadata(check)]));
   state.scanMessage = 'reading';
-  $('#exportButton').disabled = true;
   for (const record of state.records.values()) updateRow(record);
   updateSummary();
   filterRows();
@@ -189,7 +189,6 @@ async function refresh() {
   if (generation !== state.generation) return;
   state.collecting = false;
   state.scanMessage = 'ready';
-  $('#exportButton').disabled = false;
   updateSummary();
 }
 
