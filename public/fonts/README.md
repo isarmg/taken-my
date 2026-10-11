@@ -31,8 +31,10 @@ embedded OpenType `name` metadata.
 - License source: https://github.com/google/fonts/blob/main/ofl/ibmplexmono/OFL.txt
 - Downloaded verbatim on 2026-10-10 from:
   https://raw.githubusercontent.com/google/fonts/refs/heads/main/ofl/ibmplexmono/OFL.txt
-- License SHA-256: `7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da`
+- Original downloaded license SHA-256 (CRLF): `7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da`
+- Repository license SHA-256 (LF): `37784b44044a4ffd9256702b7c0982c37e5c8887ba90c6dca0479aea93dc898d`
 
-The two license files preserve the upstream text, copyright notices, and
-formatting byte for byte. Vite copies this directory, including the licenses,
-into the production build.
+The two license files preserve the upstream license text and copyright notices.
+The IBM Plex Mono license has only its line endings normalized from CRLF to LF;
+its license text is unchanged. Vite copies this directory, including the
+licenses, into the production build.
