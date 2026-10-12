@@ -1,6 +1,7 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-taken-fonts="pending">
   <head>
+    <style>html[data-taken-fonts="pending"] { background: #090909; } html[data-taken-fonts="pending"] body { visibility: hidden; }</style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#090909" />
@@ -8,11 +9,13 @@
     <meta name="referrer" content="no-referrer" />
     <title>taken. — browser portrait</title>
     <link rel="preload" href="/fonts/eb-garamond-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/eb-garamond-400-italic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <button class="language-switch" id="languageSwitch" type="button" aria-label="切换到中文">中文</button>
-    <noscript><main class="no-script"><h1>taken.</h1><p>需要 JavaScript 才能在本地读取浏览器信息。</p><p lang="en">JavaScript is needed to read browser information locally.</p></main></noscript>
+    <noscript><style>html[data-taken-fonts="pending"] body { visibility: visible; }</style><main class="no-script"><h1>taken.</h1><p>需要 JavaScript 才能在本地读取浏览器信息。</p><p lang="en">JavaScript is needed to read browser information locally.</p></main></noscript>
     <main class="page" id="page">
       <header class="intro">
         <p class="series-label" data-i18n="series">A browser portrait · Local edition</p>
@@ -86,6 +89,6 @@
         <button class="close-button" type="button" data-close data-i18n="close">Close</button>
       </div>
     </dialog>
-    <script type="module" src="/app.js"></script>
+    <script type="module" src="/font-startup.js"></script>
   </body>
 </html>

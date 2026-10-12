@@ -1,5 +1,8 @@
 # Bundled fonts
 
+The application loads and decodes all three complete faces once before startup.
+The font binaries are unchanged and are not divided into Unicode shards.
+
 These WOFF2 files were already present in the project. They were not
 re-downloaded, modified, or regenerated when these attribution files were
 added. The original download URLs for the font binaries are not recorded in
