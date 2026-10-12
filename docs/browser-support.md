@@ -12,9 +12,9 @@ On Chromium-based platforms, Battery, Device Memory, and Network Information API
 
 ## Firefox
 
-当前 Firefox 不提供本项目使用的电池、近似内存和网络连接 API；这些字段显示“未提供”属于正常情况。其他可用字段仍独立显示。
+当前 Firefox 不提供本项目使用的电池、近似内存和网络连接 API；这些内容会从画像中省略，其他成功取得的信息照常展示。
 
-Current Firefox does not expose the Battery, Device Memory, or Network Information APIs used here. “Not exposed” is expected for those fields; other fields remain independently usable.
+Current Firefox does not expose the Battery, Device Memory, or Network Information APIs used here. Those observations are omitted from the portrait; other successful observations remain visible.
 
 ## Safari / WebKit
 
@@ -24,9 +24,9 @@ Safari also does not expose those three APIs. For mobile browsers using WebKit, 
 
 ## 权限与安全上下文 / Permissions and secure contexts
 
-现代 Chrome、Edge、Firefox 和 Safari 都提供 Permissions API，但支持查询的具体权限名称可能不同。点击“读取权限状态”后，以每个字段的实际返回状态为准。HTTP 站点上的安全上下文 API 会显示“已阻止”；localhost 可用于本地开发。
+底层保留权限查询代码供开发使用，1.0.1 访客页面不调用或展示它，也不申请位置、摄像头或麦克风权限。安全上下文要求未满足时，相关信息不会出现在画像或副本里。localhost 可用于本地开发。
 
-Modern Chrome, Edge, Firefox, and Safari expose the Permissions API, but supported permission names differ. After “Read permission states,” use the individual field result. Secure-context APIs show “Blocked” on ordinary HTTP sites; localhost is suitable for development.
+Permission-query code remains available for development, but the 1.0.1 visitor page neither calls nor displays it and requests no location, camera, or microphone access. When secure-context requirements are not met, the affected observations are absent from both portrait and copy. Localhost is suitable for development.
 
 以上是 API 支持说明，不代表本项目已在每个平台完成视觉测试。兼容信息核对于 2026-10-10，后续版本以 MDN 和页面实际检测为准。
 

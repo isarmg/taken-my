@@ -39,9 +39,9 @@ npm run test:browser
 CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
 ```
 
-浏览器测试需要允许 Chromium 正常启动的环境。测试覆盖本地资源请求、缺失/阻止/超时 API、安全文本显示、双语切换、筛选、可选检查、过期结果丢弃、链接复制、导出及移动端布局。GitHub Actions 在依赖检查、单元/DOM 测试和构建后安装 Chromium 并运行这些场景。
+浏览器测试需要允许 Chromium 正常启动的环境。测试覆盖本地资源请求、成功事实筛选、缺失/阻止/超时结果隐藏、安全文本显示、双语切换、搜索、可选检查、过期结果丢弃、链接复制、访客副本及移动端布局。GitHub Actions 在依赖检查、单元/DOM 测试和构建后安装 Chromium 并运行这些场景。
 
-Browser tests require an environment that permits Chromium to launch. They cover local asset requests, unavailable/blocked/hanging APIs, safe text rendering, languages, filters, optional checks, stale results, copying, export, and mobile layout. GitHub Actions runs dependency checks, unit/DOM tests, the build, and these Chromium scenarios.
+Browser tests require an environment that permits Chromium to launch. They cover local asset requests, success-only facts, hidden unavailable/blocked/hanging results, safe text rendering, languages, search, optional checks, stale results, copying, visitor exports, and mobile layout. GitHub Actions runs dependency checks, unit/DOM tests, the build, and these Chromium scenarios.
 
 ## 发布静态站点 / Deploy the static site
 
@@ -54,9 +54,9 @@ npm run preview
 
 Upload `dist/` to a static host. Secure-context APIs need HTTPS or localhost. For subdirectory deployments, set the matching `base` in `vite.config.js`.
 
-生产构建包含 `connect-src 'none'` 的内容安全策略，限制应用主动网络连接。开发模式保留 Vite 本地热更新。页面资源与字体由同一站点提供，API 文档链接按用户点击打开。
+生产构建包含 `connect-src 'none'` 的内容安全策略，限制应用主动网络连接。开发模式保留 Vite 本地热更新。页面资源与字体由同一站点提供，底层 API 参考保留在开发文档中。
 
-The production Content Security Policy includes `connect-src 'none'` to restrict application-initiated network connections. Development retains Vite's local HMR. Page assets and fonts are served from the same site; API documentation opens on click.
+The production Content Security Policy includes `connect-src 'none'` to restrict application-initiated network connections. Development retains Vite's local HMR. Page assets and fonts are served from the same site; Underlying API references remain in the developer documentation.
 
 ## 提交源码 / Keep the repository reproducible
 

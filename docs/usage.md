@@ -1,55 +1,45 @@
-# 查看信息与导出 / Inspect and export
+# 阅读画像与保留副本 / Read and keep a portrait
 
-## 查看当前快照 / Read the current snapshot
+## 读一读 / Read the portrait
 
-打开页面后，50 项常规检测会独立运行。点击“立即查看”可跳过短暂显示过渡；启用系统“减少动态效果”时会立即显示。
+打开页面后，成功取得的信息会组成简短的章节：你抵达的时间、你带来的东西、你所使用的语言、显示偏好、资源余量与连接提示。点击“直接往下看”跳过短暂过渡；系统启用“减少动态效果”时立即展开。
 
-Use “Show now” to skip the brief reveal. Each of the 50 regular checks runs independently; reduced-motion users see the fields immediately.
+Successful observations become short chapters about time, device, language, appearance, resources, and connection. “Let me see” skips the brief reveal; reduced-motion users see the portrait immediately.
 
-搜索框同时支持中英文名称、API 名称和当前值。“仅显示已获取”用于隐藏本次未能取得的字段。展开“来源与说明”查看每项的 API 和解释。
+页面和“展开那些更小的细节”都只呈现确实取得的信息，不显示失败、权限、能力探测或空卡。有效的 `0`、离线、未充电等结果仍会出现。搜索支持中英文名称与当前显示的值。
 
-Search accepts English/Chinese labels, API names, and current values. “Available only” hides fields that could not be read. Expand “Source & explanation” for the API reference and caveat.
+The portrait and “Unfold the smaller details” show only successful observations. Failures, permissions, capability probes, and empty cards stay out of the visitor view. Valid zero, offline, and not-charging values remain. Search accepts both language labels and currently displayed values.
 
-更改窗口大小或浏览器设置后，点击“重新检测”。这会刷新常规快照并清除可选结果。切换语言保留当前快照；也可用 `?lang=zh` 或 `?lang=en` 指定初始语言。
+更改窗口或设置后，可以“再看一眼”。这会替换当前记录并清除补充结果。切换语言不重新检测；`?lang=zh` 或 `?lang=en` 指定初始语言。
 
-Use “Check again” after resizing or changing browser settings. It refreshes the regular snapshot and clears optional results. Language switching keeps the current snapshot; `?lang=zh` or `?lang=en` sets the initial language.
+“Take another look” replaces the current observations and clears optional ones. Switching languages reuses the snapshot; `?lang=zh` or `?lang=en` sets the initial language.
 
-## 理解状态 / Interpret status
+## 再添两笔 / A little more
 
-- 已获取 / Available：成功读到值，包括有效的 `0` 或 `false`。
-- 未提供 / Not exposed：浏览器没有提供该 API 或属性。
-- 已阻止 / Blocked：受到安全上下文、权限策略或浏览器限制。
-- 已超时 / Timed out：单项检测超过 1.8 秒，其他结果仍可使用。
-- 暂不可用、读取失败 / Unavailable, Could not read：此次读取没有结果或发生异常。
+“再看看图形与字体”只在点击时运行。图形名称是浏览器报告的提示；字体来自一小组固定候选的文字宽度比较，因此称作“可能的字体”，并非完整的已安装字体清单。成功的补充结果可收起或再次查看。
 
-API 存在只表示接口可见。它不等于已获访问权限；近似值和媒体查询的“未匹配”需要结合每个字段的说明阅读。
+“Look at graphics & fonts” runs only when clicked. Graphics names are browser hints. Possible fonts are inferred from a small fixed candidate list, not a complete installed-font inventory. Successful optional observations can be cleared or checked again.
 
-API presence means the interface is exposed, not that access is allowed. Approximate values and media-query “No match” results should be read with their field-specific explanations.
+页面没有权限诊断入口，也不会申请权限或实际启动定位、摄像头、麦克风。
 
-## 运行可选检查 / Run optional checks
+The page has no permission-diagnostics control and does not request access or activate location, camera, or microphone.
 
-“查看图形与字体提示”读取 WebGL 渲染器，并用一小组固定候选字体做本地文字宽度比较。渲染器可能被隐藏或虚拟化，字体结果可能有误报或遗漏，并非已安装字体清单。
+## 保留或递给别人 / Keep or share
 
-“Inspect graphics & font hints” reads the WebGL renderer and compares a small, fixed font-candidate list using local text widths. The renderer may be masked or virtualized. Font hints can miss fonts or produce false matches; they are not an inventory.
+“留一份副本”在你的设备上下载 JSON 文件。1.0.1 使用 `schemaVersion: 2`：仅保留本次成功呈现的信息，以当前语言的 `label` 和 `value` 保存，另有生成时间与隐私提示；不含内部字段名、采集来源、错误或权限状态。搜索筛选只影响查找视图，不删减副本。页面互动计数不在副本中。
 
-“读取权限状态”查询位置、摄像头、麦克风和通知的已有权限。它不会发起访问或权限申请。“已拒绝”是成功读到的权限值；“需询问”表示真正访问时需要申请。本应用不会进行该访问。
+“Keep a copy” downloads a JSON file to your device. Version 1.0.1 uses `schemaVersion: 2`: successful visitor observations become `label`/`value` pairs in the current language, alongside the capture time and a privacy note. Internal field names, collection sources, errors, and permission states are excluded. Search narrows the appendix without removing observations from the copy. Activity counters are not exported.
 
-“Read permission states” queries existing location, camera, microphone, and notification permissions without requesting access. “Denied” is a successfully read permission value; “Prompt” means a real access attempt would need permission. The app does not make that attempt.
+文件包含设备与设置详情，分享前请检查。刷新或收起页面结果不会删除已经下载的副本。
 
-可选结果可通过“清除可选结果”移除，再次点击对应按钮重新读取。Optional results can be cleared and explicitly checked again.
+Review the device/settings details before sharing. Refreshing or clearing the page does not delete files already downloaded.
 
-## 导出或分享 / Export or share
+“把这一页递给别人”复制页面链接，移除查询参数、片段及网址中的账号信息，不把检测结果放进链接。剪贴板不可用时可手动复制显示的链接。
 
-“导出本地 JSON”生成设备与设置详情文件，包含已经运行的可选检查。分享前请先检查内容。文件保存在你的设备上；刷新页面或清除结果不会删除已下载文件。
+“Pass the page along” copies the page link without query parameters, fragments, URL credentials, or observations. If the clipboard is unavailable, copy the displayed link manually.
 
-“Export local JSON” downloads device/settings details, including optional checks already run. Review the file before sharing. Refreshing or clearing the page does not delete downloaded files.
+## 留在这一页 / What stays here
 
-“复制页面链接”保留页面路径，移除查询参数、片段和 URL 中的账号信息。检测值不会加入链接。剪贴板不可用时，可以选中显示的链接手动复制。
+结果与互动汇总只留在标签页内存中。应用不使用持久化存储、跨站标识或上传服务。站点托管方仍会收到加载页面和字体等常规请求，并可能记录普通访问日志。
 
-“Copy page link” keeps the page path while removing query parameters, fragments, and URL credentials. Detected values are not added to the link. If the clipboard is unavailable, select and copy the displayed link manually.
-
-## 结果保留在哪里 / Where results live
-
-快照和当前标签页的汇总互动计数保留在页面内存中。应用不写入持久化浏览器存储或生成跨站标识。检测使用本地 API；托管方仍会收到加载页面、脚本、样式和自带字体的常规请求，并可能记录日志。外部参考链接仅在点击时打开。
-
-Snapshots and aggregate current-tab interaction counters live in page memory. The app does not write persistent browser storage or create a cross-site identifier. Detection uses local APIs; the host still receives ordinary requests for the page, scripts, styles, and bundled fonts and may log them. External references open when clicked.
+Observations and aggregate activity counts live only in tab memory. The app does not use persistent storage, cross-site identifiers, or upload services. The host still receives normal page/font requests and may keep ordinary access logs.
