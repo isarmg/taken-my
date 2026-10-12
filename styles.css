@@ -127,3 +127,33 @@ html[lang="zh-CN"] .fact-details, html[lang="zh-CN"] .modal-lede, html[lang="zh-
 @media (prefers-reduced-motion: no-preference) { .revealed .inspector { animation: appear .4s ease both; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition: none !important; } }
 @media (prefers-contrast: more) { :root { --dim: #e9e5df; --faint: #b9b2aa; --line: #77716c; } }
+
+/* The portrait is the reading path; the complete record is a quiet appendix. */
+.portrait { max-width: 680px; margin: 2.8rem auto 0; }
+.portrait-chapter { position: relative; padding: 2.5rem 0 3rem; border-top: 1px solid var(--line); }
+.chapter-number { margin: 0 0 1rem; color: var(--accent); font: .63rem/1.6 var(--mono); letter-spacing: .2em; }
+.portrait-chapter h2 { margin: 0 0 1.5rem; font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.4; font-weight: 400; }
+.portrait-lines { margin: 0; }
+.portrait-line { margin: 0 0 .9rem; }
+.portrait-line dt { color: var(--faint); font-size: .76rem; line-height: 1.7; }
+.portrait-line dd { margin: .15rem 0 0; color: var(--accent); font-size: 1.15rem; line-height: 1.6; overflow-wrap: anywhere; }
+.prose { max-width: 580px; margin: 1.5rem 0 0; color: var(--dim); font-size: 1rem; line-height: 1.9; }
+.all-facts { margin: 0 auto 3rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.all-facts > summary { padding: 1.1rem 0; cursor: pointer; color: var(--dim); line-height: 1.7; }
+.all-facts[open] { padding-bottom: 1.5rem; }
+.all-facts .filter-bar { border-top: 0; }
+.optional-panel, .closing, .keep-copy { max-width: 680px; margin-left: auto; margin-right: auto; }
+.optional-results { grid-template-columns: 1fr; margin-top: 1.5rem; }
+.optional-results .fact-group > h2 { display: none; }
+.optional-results .fact-label { font-size: 1.15rem; }
+.optional-results .datum { color: var(--accent); font-size: .85rem; }
+.keep-copy { text-align: center; padding: 0 0 3rem; }
+#behaviorText { font: 1.1rem/1.9 var(--serif); }
+#scanStatus { text-align: center; }
+html[lang="zh-CN"] .prose { line-height: 2.1; }
+html[lang="zh-CN"] #behaviorText { font-family: inherit; }
+@media (max-width: 700px) {
+  .portrait { margin-top: 2rem; }
+  .portrait-chapter { padding: 2rem 0 2.4rem; }
+  .portrait-line dd { font-size: 1.05rem; }
+}

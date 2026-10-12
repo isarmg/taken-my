@@ -1,5 +1,5 @@
-import { checks, detailChecks, permissionChecks, GROUPS, STATUS, metadata, collectFacts, cleanShareUrl, exportSnapshot, withTimeout } from './browser-info.js';
-import { formatValue } from './display-format.js';
+import { checks, detailChecks, GROUPS, metadata, collectFacts, cleanShareUrl, withTimeout } from './browser-info.js';
+import { createPortrait, visitorRecords, visitorLabel, visitorValue, exportPortrait } from './portrait.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -7,43 +7,41 @@ const requestedLanguage = new URLSearchParams(location.search).get('lang');
 let language = ['en', 'zh'].includes(requestedLanguage) ? requestedLanguage : ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
 const copy = {
   en: {
-    series: 'A browser portrait · Local edition', intro: 'See what arrives with your browser.', privacy: 'Calculated here. No accounts, cloud APIs, analytics, or uploads.',
-    skip: 'Show now', shown: 'All fields shown', refresh: 'Check again', export: 'Export local JSON', exportNote: 'Export includes device and setting details. Review the downloaded file before sharing.',
-    filter: 'Find a field', availableOnly: 'Available only', empty: 'No matching fields.', optional: 'Look a little closer',
-    optionalNote: 'Optional checks run only when you press their button. Permission states are read without asking for new access; location, camera, and microphone are never activated.',
-    details: 'Inspect graphics & font hints', permissions: 'Read permission states', clearOptional: 'Clear optional results', optionalCleared: 'Optional results cleared from this page.',
-    sessionHeading: 'This tab, this moment', sessionNote: 'Only aggregate counters in this page’s memory. No keystrokes, pointer coordinates, browsing history, or cross-site identifier.',
-    sources: 'Sources & limits', share: 'Copy page link', edition: 'Standard APIs. Nothing bypassed.', credit: 'An independent study inspired by ',
-    shareHeading: 'Share the page, not your snapshot.', shareNote: 'This link excludes the query string, fragment, and all detected values. No social network is contacted by this page.', pageLink: 'Page link', copy: 'Copy link', close: 'Close',
+    series: 'A browser portrait · Vol. I', intro: 'You opened a page. A few details arrived with you.', privacy: 'A portrait made in this tab. The observations are not uploaded.',
+    skip: 'Let me see', shown: 'Here you are', refresh: 'Take another look', export: 'Keep a copy', exportNote: 'Save these observations as a file (JSON) on your device. It contains device and setting details, so take a look before sharing it.',
+    allFacts: 'Unfold the smaller details', filter: 'Find something', empty: 'Try another word.', optional: 'A little more of the picture',
+    optionalNote: 'If you like, add the graphics and a few possible fonts behind the page. These two glimpses begin only when you choose.',
+    details: 'Look at graphics & fonts', clearOptional: 'Put these details away',
+    sessionHeading: 'While you were here', sessionNote: 'These little counts stay with you only on this page.',
+    sources: 'A note on this portrait', share: 'Pass the page along', edition: 'A fleeting portrait. A little room for mystery.', credit: 'An independent study inspired by ',
+    shareHeading: 'A page described a little of my device.', shareNote: 'The link carries only the page. None of your observations travel with it.', pageLink: 'Page link', copy: 'Copy link', close: 'Close',
     copied: 'Link copied.', copyFailed: 'Clipboard unavailable. Select and copy the link above.',
-    sourcesHeading: 'Sources & limits', sourcesNote: 'Every field names its documented browser API and links to its source. Missing values can mean unsupported APIs, privacy protections, policy restrictions, or a timeout. They are never treated as proof about you.',
-    localTitle: 'What stays local', localNote: 'Results live only in this tab’s memory. The app never writes cookies, localStorage, sessionStorage, IndexedDB, or an identifier. Export creates a file only when you ask. Reloading or clearing optional results discards them from the page; downloaded files remain on your device.',
-    networkTitle: 'What uses the network', networkNote: 'Your browser downloads this page, scripts, styles, and bundled fonts from its host. Like any website, the host can see ordinary requests and may log them; this app cannot control hosting logs. Detection sends no requests. External documentation links open only when clicked. Browser vendors may implement APIs internally; this app cannot audit the browser itself.',
-    limitsTitle: 'No hidden access', limitsNote: 'No IP lookup, geolocation retrieval, camera or microphone capture, WebRTC/STUN/TURN, port scan, network speed test, exploit, or permission bypass. API presence does not mean permission. Reported values can be approximate, masked, stale, or spoofed.',
-    permissionTitle: 'Permissions stay yours', permissionNote: 'The optional permission check only reads existing states. “Prompt” means a real access attempt would need your permission; this page never makes that attempt. Manage permissions in your browser’s site settings.',
-    reading: 'Reading independent local checks…', ready: 'Snapshot ready. Check again after changing settings or resizing.', optionalReading: 'Reading optional local checks…', optionalReady: 'Optional checks finished. Each field shows its own status.',
-    source: 'Source & explanation', checked: 'Snapshot started', exportDone: 'Local JSON download prepared. Nothing uploaded.', exportFailed: 'The download could not be prepared. Please try again.', controls: 'Browser inspector controls', facts: 'Browser facts', optionalFacts: 'Optional browser facts', snapshot: 'Snapshot status'
+    sourcesHeading: 'Sources & confessions', sourcesNote: 'This portrait is made from details your browser shares with the page. These are device hints and settings, not a complete picture of you.',
+    localTitle: 'What stays here', localNote: 'The observations stay in this tab’s memory. Activity is counted in totals; no typed words, exact pointer positions, or browsing history are recorded. This app does not save the observations in your browser or upload them. Reloading starts a new portrait. A copy is saved to your device only when you ask; downloaded files stay there until you remove them.',
+    networkTitle: 'How the page arrives', networkNote: 'Your browser downloads the page and its fonts from the host, which may keep ordinary website access logs. Making this portrait sends no additional requests.',
+    limitsTitle: 'The edges of the picture', limitsNote: 'This page does not retrieve your location, record sound or pictures, read browsing history, or look up your network address. Browser settings and privacy protections may alter what is reported. A hint is not proof of who you are.',
+    reading: '', ready: '',
+    checked: 'This moment', exportDone: 'Your copy is ready to download. Nothing was uploaded.', exportFailed: 'The download could not be prepared. Please try again.', controls: 'Portrait controls', facts: 'The smaller details', optionalFacts: 'Graphics and font observations', portrait: 'What came with your browser'
   },
   zh: {
-    series: '浏览器画像 · 本地版', intro: '看看是什么与你的浏览器一同抵达。', privacy: '在这里计算。无需账号，不接入云端 API、统计分析或上传服务。',
-    skip: '立即查看', shown: '已显示所有字段', refresh: '重新检测', export: '导出本地 JSON', exportNote: '导出包含设备和设置详情，请先检查下载的文件再分享。',
-    filter: '查找字段', availableOnly: '仅显示已获取', empty: '没有匹配的字段。', optional: '再看仔细一点',
-    optionalNote: '可选检测只在你点击对应按钮后运行。读取已有权限状态，不申请新权限；从不启用定位、摄像头或麦克风。',
-    details: '查看图形与字体提示', permissions: '读取权限状态', clearOptional: '清除可选结果', optionalCleared: '已从当前页面清除可选结果。',
-    sessionHeading: '这个标签页，这一刻', sessionNote: '仅在页面内存中保留汇总计数，不记录按键、指针坐标、浏览历史或跨站标识。',
-    sources: '来源与局限', share: '复制页面链接', edition: '标准 API，不绕过任何限制。', credit: '独立研究，灵感来自 ',
-    shareHeading: '分享页面，不分享你的检测快照。', shareNote: '链接不包含查询参数、片段或任何检测结果。本页面不连接社交网络。', pageLink: '页面链接', copy: '复制链接', close: '关闭', copied: '链接已复制。', copyFailed: '剪贴板不可用，请选中上方链接手动复制。',
-    sourcesHeading: '来源与局限', sourcesNote: '每个字段都列出所用的公开浏览器 API 和文档链接。缺失值可能源于不支持、隐私保护、策略限制或超时，不能据此判断你的情况。',
-    localTitle: '哪些信息留在本地', localNote: '结果仅存在于当前标签页内存中。应用不写入 Cookie、localStorage、sessionStorage、IndexedDB 或身份标识。仅在你点击导出时生成文件。刷新或清除可选结果会丢弃页面中的相应结果，已下载的文件仍保留在设备上。',
-    networkTitle: '哪些操作使用网络', networkNote: '浏览器需要从托管站点下载页面、脚本、样式和自带字体。与普通网站一样，托管方可看到常规请求并可能记录日志，应用无法控制托管日志。检测过程不发送请求。外部文档链接仅在点击时打开。浏览器厂商可能在内部实现 API，本应用无法审计浏览器本身。',
-    limitsTitle: '没有隐藏访问', limitsNote: '不查询 IP、不获取地理位置、不启动摄像头或麦克风，不使用 WebRTC/STUN/TURN、端口扫描、网络测速、漏洞或权限绕过。API 存在不代表有访问权限。报告值可能近似、被隐藏、过期或被伪装。',
-    permissionTitle: '权限由你掌握', permissionNote: '可选权限检查只读取已有状态。“需询问”表示真正尝试访问时需要征得同意，本页面不会进行这种尝试。你可以在浏览器的站点设置中管理权限。',
-    reading: '正在独立读取各项本地信息…', ready: '快照已就绪。更改设置或调整窗口后可重新检测。', optionalReading: '正在读取可选本地信息…', optionalReady: '可选检测已完成，每个字段都有独立状态。',
-    source: '来源与说明', checked: '快照开始时间', exportDone: '本地 JSON 下载已准备好，没有上传任何信息。', exportFailed: '无法准备下载，请重试。', controls: '浏览器检测操作', facts: '浏览器信息', optionalFacts: '可选浏览器信息', snapshot: '快照状态'
+    series: '浏览器画像 · 第一卷', intro: '你只是打开了页面。一些关于此刻的线索，已经随你抵达。', privacy: '这份画像只在当前标签页里展开。检测结果不会上传。',
+    skip: '直接往下看', shown: '画像已展开', refresh: '再看一眼', export: '留一份副本', exportNote: '把这些信息存成设备上的文件（JSON）。其中有设备与设置详情，分享前请先看一眼。',
+    allFacts: '展开那些更小的细节', filter: '找一找', empty: '换一个词试试。', optional: '还有两笔，可以由你添上',
+    optionalNote: '如果愿意，再看看绘制页面的设备，以及几种可能的字体。这两笔，等你点头才开始。',
+    details: '再看看图形与字体', clearOptional: '收起补充信息',
+    sessionHeading: '你停留的这一会儿', sessionNote: '这些计数，只陪你停留在这一页。',
+    sources: '关于这份画像', share: '把这一页递给别人', edition: '一幅片刻的画像，留一点未知。', credit: '独立研究，灵感来自 ',
+    shareHeading: '一个页面，描述了我设备的一小部分。', shareNote: '链接只带走页面，不带走你的这些信息。', pageLink: '页面链接', copy: '复制链接', close: '关闭', copied: '链接已复制。', copyFailed: '剪贴板不可用，请选中上方链接手动复制。',
+    sourcesHeading: '来源与坦白', sourcesNote: '这份画像来自浏览器交给页面的信息。它们是设备的线索与设置，拼不出一个完整的你。',
+    localTitle: '哪些东西留在这里', localNote: '这些信息只留在当前标签页的内存里。页面只汇总互动次数，不记录输入的文字、指针的具体位置或浏览历史。应用不会把这些信息存入浏览器或上传。刷新页面，画像便重新开始。只有你选择保留副本时，才会在设备上生成文件；已下载的文件需要你自行删除。',
+    networkTitle: '这一页如何抵达', networkNote: '浏览器从托管站点下载页面和字体，托管方可能保留普通的网站访问日志。生成画像的过程不会另发请求。',
+    limitsTitle: '画像的边缘', limitsNote: '本页不获取你的位置，不拍摄或录音，不读取浏览历史，也不查询你的网络地址。浏览器设置与隐私保护可能改变呈现的信息。线索终究不是身份的证明。',
+    reading: '', ready: '',
+    checked: '这一刻', exportDone: '副本已准备好下载，没有上传任何信息。', exportFailed: '无法准备下载，请重试。', controls: '画像操作', facts: '更小的细节', optionalFacts: '图形与字体信息', portrait: '随浏览器一同抵达的信息'
   }
 };
 
-const state = { generation: 0, optionalGeneration: 0, records: new Map(), optional: new Map(), capturedAt: '', collecting: false, optionalBusy: 0, revealed: false, scanMessage: 'reading', optionalMessage: '', clicks: 0, moves: 0, tabSwitches: 0, scrollMax: 0 };
+const state = { generation: 0, optionalGeneration: 0, records: new Map(), optional: new Map(), capturedAt: '', collecting: false, optionalBusy: 0, revealed: false, scanMessage: 'reading', clicks: 0, moves: 0, tabSwitches: 0, scrollMax: 0 };
 const rows = new Map();
 const startedAt = performance.now();
 let copyGeneration = 0;
@@ -65,10 +63,11 @@ function applyLanguage() {
   $('#toolbar').setAttribute('aria-label', t('controls'));
   $('#observations').setAttribute('aria-label', t('facts'));
   $('#optionalResults').setAttribute('aria-label', t('optionalFacts'));
-  $('.snapshot-summary').setAttribute('aria-label', t('snapshot'));
+  $('#portrait').setAttribute('aria-label', t('portrait'));
   $('#skipButton').textContent = t(state.revealed ? 'shown' : 'skip');
   for (const [id, record] of [...state.records, ...state.optional]) updateRow(record);
   $$('[data-group]').forEach(element => element.textContent = GROUPS[element.dataset.group][language]);
+  renderPortrait();
   updateSummary();
   populateBehavior();
   filterRows();
@@ -83,29 +82,22 @@ function createRows(selected, target) {
       heading.dataset.group = check.group;
       const list = node('dl', 'fact-list');
       article.append(heading, list);
+      article.hidden = true;
       target.append(article);
       groups.set(check.group, list);
     }
     const wrapper = node('div', 'fact');
     wrapper.dataset.factId = check.id;
+    wrapper.hidden = true;
     const term = node('dt');
     const label = node('span', 'fact-label');
-    const status = node('span', 'fact-status');
-    term.append(label, status);
+    term.append(label);
     const definition = node('dd');
     const value = node('p', 'datum');
-    const details = node('details', 'fact-details');
-    const summary = node('summary');
-    const source = node('a', 'source-link', check.source);
-    source.href = check.docs;
-    source.target = '_blank';
-    source.rel = 'noopener noreferrer';
-    const explanation = node('p');
-    details.append(summary, source, explanation);
-    definition.append(value, details);
+    definition.append(value);
     wrapper.append(term, definition);
     groups.get(check.group).append(wrapper);
-    rows.set(check.id, { wrapper, label, status, value, summary, explanation });
+    rows.set(check.id, { wrapper, label, value });
     updateRow(metadata(check));
   }
 }
@@ -113,39 +105,56 @@ function createRows(selected, target) {
 function updateRow(record) {
   const row = rows.get(record.id);
   if (!row) return;
-  row.label.textContent = record.label[language];
-  row.status.textContent = STATUS[record.status][language];
-  row.status.dataset.status = record.status;
-  row.value.textContent = formatValue(record, language);
-  row.summary.textContent = t('source');
-  row.explanation.textContent = record.note[language];
+  const disclosed = visitorRecords([record])[0];
+  row.wrapper.hidden = !disclosed;
+  row.label.textContent = disclosed ? visitorLabel(disclosed, language) : '';
+  row.value.textContent = disclosed ? visitorValue(disclosed, language) : '';
+}
+
+function renderPortrait() {
+  const chapters = createPortrait(state.records.values(), language);
+  const fragments = chapters.map((chapter, index) => {
+    const article = node('article', 'portrait-chapter');
+    article.dataset.chapter = chapter.id;
+    const number = node('p', 'chapter-number', String(index + 1).padStart(2, '0'));
+    const heading = node('h2', '', chapter.title);
+    const list = node('dl', 'portrait-lines');
+    for (const line of chapter.lines) {
+      const item = node('div', 'portrait-line');
+      item.dataset.observation = line.id;
+      item.append(node('dt', '', line.label), node('dd', '', line.value));
+      list.append(item);
+    }
+    article.append(number, heading, list, node('p', 'prose', chapter.prose));
+    return article;
+  });
+  $('#portrait').replaceChildren(...fragments);
 }
 
 function updateSummary() {
-  $('#exportButton').disabled = state.collecting || state.optionalBusy > 0;
-  const records = [...state.records.values()];
-  const available = records.filter(record => record.status === 'available').length;
-  const pending = records.filter(record => record.status === 'pending').length;
+  const records = visitorRecords([...state.records.values(), ...state.optional.values()]);
+  $('#exportButton').disabled = state.collecting || state.optionalBusy > 0 || !records.length;
+  $('#inspector').setAttribute('aria-busy', String(state.collecting));
+  $('#optionalResults').setAttribute('aria-busy', String(state.optionalBusy > 0));
   $('#scanStatus').textContent = t(state.scanMessage);
-  $('#optionalStatus').textContent = state.optionalMessage ? t(state.optionalMessage) : '';
-  $('#summaryCount').textContent = language === 'zh'
-    ? `${records.length} 个字段 · ${available} 项已获取 · ${pending} 项读取中 · ${records.length - available - pending} 项未获取`
-    : `${records.length} fields · ${available} available · ${pending} reading · ${records.length - available - pending} not available`;
+  $('#scanStatus').hidden = !t(state.scanMessage);
   $('#snapshotTime').textContent = state.capturedAt ? `${t('checked')}: ${new Date(state.capturedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en')}` : '';
+  $('#allFacts').hidden = visitorRecords(state.records.values()).length === 0;
+  $('#clearOptionalButton').hidden = visitorRecords(state.optional.values()).length === 0 && state.optionalBusy === 0;
 }
 
 function filterRows() {
   const query = $('#filterInput').value.trim().toLocaleLowerCase();
-  const availableOnly = $('#availableOnly').checked;
   let visible = 0;
   for (const record of state.records.values()) {
     const row = rows.get(record.id);
-    const matches = `${record.label.en} ${record.label.zh} ${record.source} ${formatValue(record, language)}`.toLocaleLowerCase().includes(query);
-    row.wrapper.hidden = !matches || (availableOnly && record.status !== 'available');
+    const disclosed = visitorRecords([record])[0];
+    const matches = `${visitorLabel(record, 'en')} ${visitorLabel(record, 'zh')} ${disclosed ? visitorValue(disclosed, language) : ''}`.toLocaleLowerCase().includes(query);
+    row.wrapper.hidden = !disclosed || !matches;
     if (!row.wrapper.hidden) visible++;
   }
-  $$('#observations .fact-group').forEach(group => { group.hidden = ![...group.querySelectorAll('.fact')].some(row => !row.hidden); });
-  $('#emptyResults').hidden = visible > 0;
+  $$('.fact-group').forEach(group => { group.hidden = ![...group.querySelectorAll('.fact')].some(row => !row.hidden); });
+  $('#emptyResults').hidden = !query || visible > 0;
 }
 
 function reveal() {
@@ -156,33 +165,33 @@ function reveal() {
   document.body.classList.add('revealed');
 }
 
-function clearOptional({ announce = true } = {}) {
+function clearOptional() {
   state.optionalGeneration++;
   state.optionalBusy = 0;
   for (const id of state.optional.keys()) rows.delete(id);
   state.optional.clear();
   $('#optionalResults').replaceChildren();
   $('#detailsButton').disabled = false;
-  $('#permissionsButton').disabled = false;
   $('#clearOptionalButton').hidden = true;
-  state.optionalMessage = announce ? 'optionalCleared' : '';
   updateSummary();
 }
 
 async function refresh() {
   const generation = ++state.generation;
-  clearOptional({ announce: false });
+  clearOptional();
   state.collecting = true;
   state.capturedAt = new Date().toISOString();
   state.records = new Map(checks.map(check => [check.id, metadata(check)]));
   state.scanMessage = 'reading';
   for (const record of state.records.values()) updateRow(record);
+  renderPortrait();
   updateSummary();
   filterRows();
   await collectFacts({ onResult: result => {
     if (generation !== state.generation) return;
     state.records.set(result.id, result);
     updateRow(result);
+    renderPortrait();
     filterRows();
     updateSummary();
   } });
@@ -193,11 +202,11 @@ async function refresh() {
 }
 
 async function runOptional(selected, button) {
+  clearOptional();
   const generation = state.optionalGeneration;
   const mainGeneration = state.generation;
   button.disabled = true;
   state.optionalBusy++;
-  state.optionalMessage = 'optionalReading';
   for (const check of selected) state.optional.set(check.id, metadata(check));
   createRows(selected, $('#optionalResults'));
   $('#clearOptionalButton').hidden = false;
@@ -206,18 +215,19 @@ async function runOptional(selected, button) {
     if (generation !== state.optionalGeneration || mainGeneration !== state.generation) return;
     state.optional.set(result.id, result);
     updateRow(result);
+    filterRows();
   } });
   if (generation !== state.optionalGeneration || mainGeneration !== state.generation) return;
   state.optionalBusy--;
-  state.optionalMessage = state.optionalBusy ? 'optionalReading' : 'optionalReady';
+  button.disabled = false;
   updateSummary();
 }
 
 function populateBehavior() {
   const seconds = Math.round((performance.now() - startedAt) / 1000);
   $('#behaviorText').textContent = language === 'zh'
-    ? `停留 ${seconds} 秒 · 滚动最远 ${state.scrollMax}% · 指针/触控移动 ${state.moves} 次 · 点击 ${state.clicks} 次 · 离开标签页 ${state.tabSwitches} 次`
-    : `${seconds}s here · ${state.scrollMax}% maximum scroll · ${state.moves} pointer/touch moves · ${state.clicks} clicks · ${state.tabSwitches} tab departures`;
+    ? `你在这里停留了 ${seconds} 秒，最远翻到页面的 ${state.scrollMax}%，轻点了 ${state.clicks} 次。指针或触控移动了 ${state.moves} 次，页面转入后台 ${state.tabSwitches} 次。`
+    : `You have spent ${seconds} seconds here, reached ${state.scrollMax}% down the page, and clicked ${state.clicks} times. There have been ${state.moves} pointer or touch movements and ${state.tabSwitches} moments with the page in the background.`;
 }
 
 document.addEventListener('pointermove', () => state.moves++, { passive: true });
@@ -230,10 +240,8 @@ setInterval(() => { if (!document.hidden) populateBehavior(); }, 1000);
 $('#skipButton').addEventListener('click', reveal);
 $('#refreshButton').addEventListener('click', () => { reveal(); refresh(); });
 $('#detailsButton').addEventListener('click', () => runOptional(detailChecks, $('#detailsButton')));
-$('#permissionsButton').addEventListener('click', () => runOptional(permissionChecks, $('#permissionsButton')));
 $('#clearOptionalButton').addEventListener('click', () => clearOptional());
 $('#filterInput').addEventListener('input', filterRows);
-$('#availableOnly').addEventListener('change', filterRows);
 $('#languageSwitch').addEventListener('click', () => {
   language = language === 'en' ? 'zh' : 'en';
   const url = new URL(location.href);
@@ -244,7 +252,7 @@ $('#languageSwitch').addEventListener('click', () => {
 });
 $('#exportButton').addEventListener('click', () => {
   try {
-    const snapshot = exportSnapshot([...state.records.values(), ...state.optional.values()], state.capturedAt);
+    const snapshot = exportPortrait([...state.records.values(), ...state.optional.values()], state.capturedAt, language);
     const blob = new Blob([`${JSON.stringify(snapshot, null, 2)}\n`], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

@@ -85,13 +85,13 @@ test('battery formatting preserves zero charge and translates both charging stat
   assert.equal(formatValue(available({ levelPercent: 100, charging: true }, 'battery'), 'zh'), '100% · 正在充电');
 });
 
-test('graphics formatting labels unmasked extension availability and generic renderer fallback', () => {
+test('graphics formatting presents reported names without exposing debug-extension machinery', () => {
   const value = { vendor: 'Vendor', renderer: 'Renderer', unmaskedExtension: true };
-  assert.equal(formatValue(available(value, 'graphics')), 'Vendor · Renderer · Debug extension available');
-  assert.equal(formatValue(available(value, 'graphics'), 'zh'), 'Vendor · Renderer · 调试扩展可用');
+  assert.equal(formatValue(available(value, 'graphics')), 'Vendor · Renderer');
+  assert.equal(formatValue(available(value, 'graphics'), 'zh'), 'Vendor · Renderer');
   value.unmaskedExtension = false;
-  assert.equal(formatValue(available(value, 'graphics')), 'Vendor · Renderer · Generic renderer');
-  assert.equal(formatValue(available(value, 'graphics'), 'zh'), 'Vendor · Renderer · 通用渲染器');
+  assert.equal(formatValue(available(value, 'graphics')), 'Vendor · Renderer');
+  assert.equal(formatValue(available(value, 'graphics'), 'zh'), 'Vendor · Renderer');
 });
 
 test('array observations show all matches and distinguish an empty observation from unsupported', () => {

@@ -1,8 +1,8 @@
 # 信息来源与说明 / Sources and interpretation
 
-`browser-info.js` 定义所有字段和来源；`display-format.js` 负责双语显示。字段在界面中各自带有直接文档链接。
+`browser-info.js` 保留底层字段与来源，`display-format.js` 格式化值，`portrait.js` 筛选面向访客的成功事实并生成双语叙事。技术来源只留在源码与本文档，不进入访客页面或副本。
 
-`browser-info.js` defines the field catalogue and sources; `display-format.js` handles bilingual display. Every visible field also links directly to its API documentation.
+`browser-info.js` retains the internal catalogue and sources, `display-format.js` formats values, and `portrait.js` selects successful visitor facts and composes the bilingual narrative. Technical sources stay in code and this reference, not in the visitor view or its copy.
 
 ## 按信息类型查阅 / Look up a category
 
@@ -13,7 +13,7 @@
 - [Storage estimates](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/estimate)：当前源的近似使用量与配额，并非硬盘剩余空间。Approximate current-origin usage/quota, not free disk space.
 - [Network Information](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation)：有限支持、可能经过取整或缓存的连接提示，并非测速。Limited, possibly rounded or cached hints, not a speed test.
 - [Battery status](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getBattery)：支持情况及安全上下文/策略限制因浏览器而异。Support and secure-context/policy restrictions vary.
-- [Permissions.query](https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query)：读取已有权限状态，不触发访问申请。Reads existing permission states without requesting access.
+- [Permissions.query](https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query)：内部保留的权限读取器；访客页面不调用它，也不展示权限状态。Retained as an internal reader; the visitor page does not call it or show permission states.
 - [WebGL renderer extension](https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_debug_renderer_info)：可能被隐私保护禁用。May be disabled by privacy protections.
 - [HTMLElement.offsetWidth](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetWidth)：可选字体候选比较使用的文本宽度信息。Text-width information used by the optional font-candidate comparison.
 

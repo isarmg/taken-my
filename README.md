@@ -6,11 +6,12 @@ A bilingual static inspector that shows browser-exposed device and setting hints
 
 ## 功能 / Features
 
-- 50 项常规信息：浏览器、语言时区、屏幕输入、显示偏好、存储与电池等
-- 6 项按钮触发的可选检测：图形、字体候选与已有权限状态
-- 字段搜索、来源说明、状态筛选、重新检测、本地 JSON 导出和页面链接复制
+- 以时间、设备、语言、显示偏好、资源余量与连接为短章，呈现此刻的浏览器画像
+- 只展示成功取得的实际信息；有效的 `0` 和 `false` 保留，空项与诊断状态不展示
+- 中英切换、可展开的简明信息清单、搜索、重新查看、本地副本下载与页面链接分享
+- 图形与候选字体由按钮触发，不查询权限状态，不启动位置、摄像头或麦克风
 
-50 regular fields, 6 optional checks, bilingual search, per-field sources/status, recheck, local JSON export, and page-link copying.
+Short bilingual chapters describe the moment through device, time, language, appearance, resource, and connection hints. Only successful visitor observations appear, including valid zero and false values. A searchable appendix, refresh, local copy, and clean page-link sharing remain available. Optional graphics and font hints run only on request; the page does not query permissions or activate sensors.
 
 ## 平台 / Platforms
 
