@@ -328,7 +328,7 @@ test('DOM: the downloaded copy matches successful displayed values, without inte
   const first = await readDownload(app);
   const expected = displayed(app).map(row => ({ label: row.querySelector('.fact-label').textContent, value: row.querySelector('.datum').textContent }));
   assert.deepEqual(first.snapshot.facts, expected);
-  assert.equal(first.snapshot.schemaVersion, 2);
+  assert.equal(first.snapshot.schemaVersion, 1);
   assert.equal(app.calls.downloads[0].connected, true);
   assert.match(app.calls.downloads[0].filename, /^taken-browser-.*\.json$/);
   assert.equal(app.all('a[download]').length, 0);

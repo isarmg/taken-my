@@ -68,7 +68,7 @@ export function visitorValue(record, language = 'en') {
 
 export function exportPortrait(records, capturedAt, language = 'en') {
   return {
-    schemaVersion: 2, capturedAt,
+    schemaVersion: 1, capturedAt,
     privacy: language === 'zh' ? '仅包含本页展示的信息，在你的浏览器中生成。分享前请先检查。' : 'Contains only the observations shown on this page, prepared in your browser. Review before sharing.',
     facts: visitorRecords(records).map(record => ({ label: visitorLabel(record, language), value: visitorValue(record, language) }))
   };

@@ -359,7 +359,7 @@ test('JSON contains only successful human-readable facts and includes optional d
   await ready(page);
   const initial = await downloadPortrait(page);
   expect(Object.keys(initial.snapshot).sort()).toEqual(['capturedAt', 'facts', 'privacy', 'schemaVersion']);
-  expect(initial.snapshot.schemaVersion).toBe(2);
+  expect(initial.snapshot.schemaVersion).toBe(1);
   expect(Number.isNaN(Date.parse(initial.snapshot.capturedAt))).toBe(false);
   expect(initial.snapshot.privacy).toEqual(expect.any(String));
   expect(initial.snapshot.facts.length).toBeGreaterThan(0);

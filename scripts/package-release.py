@@ -56,7 +56,7 @@ def archive_files(source,output,archive,verify=None):
             raise ValueError('Final static ZIP differs from its exact file inventory')
     if verify is not None:
         with tempfile.TemporaryDirectory(prefix='taken-final-static-') as temporary:
-            folder=Path(temporary)
+            folder=Path(temporary).resolve(strict=True)
             with tarfile.open(output/(archive+'.tar.gz')) as archive_:
                 archive_.extractall(folder/'tar',filter='data')
             verify(folder/'tar')
@@ -97,7 +97,7 @@ def main():
             raise ValueError('Static delivery contains an uncontrolled filesystem object')
         path.chmod(0o755 if path.is_dir() else 0o644)
     with tempfile.TemporaryDirectory(prefix='taken-static-inventory-') as temporary:
-        external=Path(temporary)/'external.json'
+        external=Path(temporary).resolve(strict=True)/'external.json'
         external.write_text(json.dumps({'format_version':1,'runtime_roots':[],'components':components}))
         finalizer.finalize(source,[],external,'taken-my',version,commit,'static-web',build_input_root=root)
         checksums_.finalize(source,'taken-my',version,commit,'static-web')

@@ -73,7 +73,7 @@ test('visitor exports contain the same successful human-readable facts, without 
     fact('api-geolocation', true), fact('permission-camera', 'granted'), fact('fontHints', ['Arial']), fact('fontHints', [], 'available')];
   for (const language of ['en', 'zh']) {
     const result = exportPortrait(records, '2026-10-12T02:00:00Z', language);
-    assert.equal(result.schemaVersion, 2);
+    assert.equal(result.schemaVersion, 1);
     assert.equal(result.facts.length, 3);
     assert.deepEqual(result.facts, visitorRecords(records).map(record => ({ label: visitorLabel(record, language), value: visitorValue(record, language) })));
     assert.deepEqual(Object.keys(result.facts[0]).sort(), ['label', 'value']);
