@@ -1,45 +1,27 @@
-# 阅读画像与保留副本 / Read and keep a portrait
+# 阅读画像与保留副本
 
-## 读一读 / Read the portrait
+## 读一读
 
 打开页面后，成功取得的信息会组成简短的章节：你抵达的时间、你带来的东西、你所使用的语言、显示偏好、资源余量与连接提示。点击“直接往下看”跳过短暂过渡；系统启用“减少动态效果”时立即展开。
 
-Successful observations become short chapters about time, device, language, appearance, resources, and connection. “Let me see” skips the brief reveal; reduced-motion users see the portrait immediately.
-
 页面和“展开那些更小的细节”都只呈现确实取得的信息，不显示失败、权限、能力探测或空卡。有效的 `0`、离线、未充电等结果仍会出现。搜索支持中英文名称与当前显示的值。
-
-The portrait and “Unfold the smaller details” show only successful observations. Failures, permissions, capability probes, and empty cards stay out of the visitor view. Valid zero, offline, and not-charging values remain. Search accepts both language labels and currently displayed values.
 
 更改窗口或设置后，可以“再看一眼”。这会替换当前记录并清除补充结果。切换语言不重新检测；`?lang=zh` 或 `?lang=en` 指定初始语言。
 
-“Take another look” replaces the current observations and clears optional ones. Switching languages reuses the snapshot; `?lang=zh` or `?lang=en` sets the initial language.
-
-## 再添两笔 / A little more
+## 再添两笔
 
 “再看看图形与字体”只在点击时运行。图形名称是浏览器报告的提示；字体来自一小组固定候选的文字宽度比较，因此称作“可能的字体”，并非完整的已安装字体清单。成功的补充结果可收起或再次查看。
 
-“Look at graphics & fonts” runs only when clicked. Graphics names are browser hints. Possible fonts are inferred from a small fixed candidate list, not a complete installed-font inventory. Successful optional observations can be cleared or checked again.
-
 页面没有权限诊断入口，也不会申请权限或实际启动定位、摄像头、麦克风。
 
-The page has no permission-diagnostics control and does not request access or activate location, camera, or microphone.
-
-## 保留或递给别人 / Keep or share
+## 保留或递给别人
 
 “留一份副本”在你的设备上下载 JSON 文件。1.0.1 使用 `schemaVersion: 2`：仅保留本次成功呈现的信息，以当前语言的 `label` 和 `value` 保存，另有生成时间与隐私提示；不含内部字段名、采集来源、错误或权限状态。搜索筛选只影响查找视图，不删减副本。页面互动计数不在副本中。
 
-“Keep a copy” downloads a JSON file to your device. Version 1.0.1 uses `schemaVersion: 2`: successful visitor observations become `label`/`value` pairs in the current language, alongside the capture time and a privacy note. Internal field names, collection sources, errors, and permission states are excluded. Search narrows the appendix without removing observations from the copy. Activity counters are not exported.
-
 文件包含设备与设置详情，分享前请检查。刷新或收起页面结果不会删除已经下载的副本。
-
-Review the device/settings details before sharing. Refreshing or clearing the page does not delete files already downloaded.
 
 “把这一页递给别人”复制页面链接，移除查询参数、片段及网址中的账号信息，不把检测结果放进链接。剪贴板不可用时可手动复制显示的链接。
 
-“Pass the page along” copies the page link without query parameters, fragments, URL credentials, or observations. If the clipboard is unavailable, copy the displayed link manually.
-
-## 留在这一页 / What stays here
+## 留在这一页
 
 结果与互动汇总只留在标签页内存中。应用不使用持久化存储、跨站标识或上传服务。站点托管方仍会收到加载页面和字体等常规请求，并可能记录普通访问日志。
-
-Observations and aggregate activity counts live only in tab memory. The app does not use persistent storage, cross-site identifiers, or upload services. The host still receives normal page/font requests and may keep ordinary access logs.

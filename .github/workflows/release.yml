@@ -16,6 +16,9 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    env:
+      XSSI_BUILD_TOOLS_DIR: ${{ runner.temp }}/taken-my-release-tools
+      XSSI_FRONTEND_METADATA_FILE: ${{ runner.temp }}/taken-my-rendered-runtime.json
     steps:
       - name: Check out exact source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,7 +40,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version: '26.7.0'
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
@@ -45,6 +48,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Run unit and DOM tests
         run: npm test
+      - name: Fetch the immutable public release inventory tools
+        run: python3 scripts/prepare-release-tools.py --output "$XSSI_BUILD_TOOLS_DIR"
       - name: Build production site
         run: npm run build
       - name: Install Chromium
